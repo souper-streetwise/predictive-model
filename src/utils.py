@@ -13,11 +13,24 @@ def get_dates(start_date, end_date) -> list:
     from datetime import timedelta
     return [date for date in date_iter(start_date, end_date)]
 
-def preciptype2int(precip_type: str):
-    if precip_type == 'no_precip': return 0
-    elif precip_type == 'rain': return 1
-    elif precip_type == 'snow': return 2
-    elif precip_type == 'sleet': return 3
+def precip_type(inputs):
+    precips = ['no_precip', 'rain', 'snow', 'sleet']
+    is_idx = isinstance(inputs, int)
+    return precips[inputs] if is_idx else precips.index(inputs)
+
+def day_of_week(inputs):
+    ''' Convert between numbers 1-7 and days of the week. '''
+    days_of_week = ['monday', 'tuesday', 'wednesday', 'thursday',
+                'friday', 'saturday', 'sunday']
+    is_idx = isinstance(inputs, int)
+    return days_of_week[inputs-1] if is_idx else days_of_week.index(inputs)+1
+
+def month(inputs):
+    ''' Convert between numbers 1-12 and months. '''
+    months = ['january', 'february', 'march', 'april', 'may', 'june',
+              'july', 'august', 'september', 'october', 'november', 'december']
+    is_idx = isinstance(inputs, int)
+    return months[inputs - 1] if is_idx else months.index(inputs) + 1
 
 if __name__ == '__main__':
     pass
