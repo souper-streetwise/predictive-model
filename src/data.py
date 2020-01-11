@@ -1,22 +1,24 @@
 def get_data(fname: str = 'dataset', data_dir: str = 'data', 
     normalise: bool = True):
     import pandas as pd
-    from utils import get_path, preciptype2int
+    from utils import get_path, precip_type, month, day_of_week
 
     df = pd.read_csv(get_path(data_dir) / f'{fname}.tsv', sep = '\t', 
         header = 0).drop(columns = ['date', 'locA', 'locB'])
-    df['precip_type'] = df['precip_type'].map(preciptype2int)
+
+    df['precip_type'] = df['precip_type'].map(precip_type)
+    df['month'] = df['month'].map(month)
+    df['day_of_week'] = df['day_of_week'].map(day_of_week)
 
     X = df[[col for col in df.columns if col != 'total']].copy()
     y = df['total']
 
-    if normalise:
-        categorical_cols = ['precip_type']
-        numeric_cols = [col_name for col_name in X.columns
-                        if col_name not in categorical_cols]
-        scaled = X[numeric_cols] - X[numeric_cols].min()
-        minmax = X[numeric_cols].max() - X[numeric_cols].min()
-        X[numeric_cols] = scaled / minmax
+    #if normalise:
+    #    categorical_cols = ['precip_type']
+    #    numeric_cols = [col_name for col_name in X.columns
+    #                    if col_name not in categorical_cols]
+    #    scaled = X[numeric_cols] - X[numeric_cols].mean()
+    #    X[numeric_cols] = scaled / X[numeric_cols].std()
 
     return X, y
 
@@ -40,8 +42,8 @@ def build_data(api_key: str, raw_fname: str = 'initial_data_no_duplicates.csv',
     raw_df['total'] = raw_df['locA'] + raw_df['locB']
     date_df = extract_date_data(raw_df['date'])
 
-    update_weather_data(api_key = api_key)
-    weather_df = extract_weather_data(raw_df['date'], data_dir = data_dir)
+    update_past_weather_data(api_key = api_key)
+    weather_df = extract_past_weather_data(raw_df['date'], data_dir = data_dir)
     weather_df['date'] = [datetime.strptime(date, '%Y-%m-%d')
                           for date in weather_df['date']]
 
@@ -54,15 +56,16 @@ def build_data(api_key: str, raw_fname: str = 'initial_data_no_duplicates.csv',
 def extract_date_data(dates: list):
     from datetime import datetime
     import pandas as pd
+    from utils import day_of_week, month
     date_data = {
-        'month': [date.month for date in dates],
+        'month': [month(date.month) for date in dates],
         'day_of_month': [date.day for date in dates],
-        'day_of_week': [date.isoweekday() for date in dates],
+        'day_of_week': [day_of_week(date.isoweekday()) for date in dates],
     }
     return pd.DataFrame(date_data)
 
-def extract_weather_data(dates: list, fname: str = 'weather_data.tsv',
-    data_dir: str = 'data'):
+def extract_past_weather_data(dates: list, api_key: str, 
+    fname: str = 'weather_data.tsv', data_dir: str = 'data'):
     import pandas as pd
     from utils import get_path
 
@@ -71,7 +74,7 @@ def extract_weather_data(dates: list, fname: str = 'weather_data.tsv',
     dates = [date.strftime('%Y-%m-%d') for date in dates]
     return weather_df[weather_df['date'].isin(dates)]
 
-def update_weather_data(api_key: str, fname: str = 'weather_data.tsv', 
+def update_past_weather_data(api_key: str, fname: str = 'weather_data.tsv', 
     data_dir: str = 'data'):
     import pandas as pd
     from datetime import datetime, timedelta
