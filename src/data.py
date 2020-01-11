@@ -1,10 +1,12 @@
 def get_data(fname: str = 'dataset', data_dir: str = 'data', 
-    normalise: bool = True):
+    normalise: bool = True, include_date: bool = False):
     import pandas as pd
     from utils import get_path, precip_type, month, day_of_week
 
     df = pd.read_csv(get_path(data_dir) / f'{fname}.tsv', sep = '\t', 
-        header = 0).drop(columns = ['date', 'locA', 'locB'])
+        header = 0).drop(columns = ['locA', 'locB'])
+
+    if not include_date: df.drop(columns = ['date'], inplace = True)
 
     df['precip_type'] = df['precip_type'].map(precip_type)
     df['month'] = df['month'].map(month)
@@ -12,13 +14,6 @@ def get_data(fname: str = 'dataset', data_dir: str = 'data',
 
     X = df[[col for col in df.columns if col != 'total']].copy()
     y = df['total']
-
-    #if normalise:
-    #    categorical_cols = ['precip_type']
-    #    numeric_cols = [col_name for col_name in X.columns
-    #                    if col_name not in categorical_cols]
-    #    scaled = X[numeric_cols] - X[numeric_cols].mean()
-    #    X[numeric_cols] = scaled / X[numeric_cols].std()
 
     return X, y
 
