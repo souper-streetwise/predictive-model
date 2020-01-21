@@ -1,9 +1,10 @@
+import numpy as np
+
 def train_forest(X, y, cv: int = 10, n_iter: int = 100, 
     model_fname: str = 'random_forest', data_dir: str = 'data') -> dict:
     ''' Train a random forest. '''
     from sklearn.model_selection import cross_val_score, RandomizedSearchCV
     from sklearn.ensemble import RandomForestRegressor
-    import numpy as np
     import pickle
     from utils import get_path
 
@@ -50,7 +51,6 @@ def train_gaussian_process(X, y, cv: int = 10, data_dir: str = 'data',
     model_fname: str = 'gaussian_process'):
     from sklearn.model_selection import cross_val_score, train_test_split
     from sklearn.gaussian_process import GaussianProcessRegressor, kernels
-    import numpy as np
     import pickle
     from utils import get_path
 
@@ -102,17 +102,20 @@ def predict_demand(date: str, api_key: str, model_fname: str = 'model',
 
     data_dict = {k: [v] for k, v in {**date_data, **weather_data}.items()}
     df = pd.DataFrame(data_dict)
+    if df.iloc[0, :].isna().any(): return np.nan
 
-    if return_std: 
-        pred = np.around(model.predict(df, return_std = True))
-        return tuple(pred.ravel().astype(int))
+    if return_std:
+        try:
+            pred = np.around(model.predict(df, return_std = True), 2)
+            return tuple(pred.ravel())
+        except TypeError:
+            return np.around(model.predict(df)[0], 2)   
     else: 
-        return np.around(model.predict(df)[0]).astype(int)
+        return np.around(model.predict(df)[0], 2)
 
 if __name__ == '__main__':
     from utils import get_path
     from data import get_data
-    import numpy as np
 
     with open(get_path('darksky_key.txt'), 'r') as file_in:
         KEY = file_in.read().rstrip()
@@ -121,7 +124,7 @@ if __name__ == '__main__':
     #train_gaussian_process(X, y)
 
     demand = predict_demand(
-        date = '2020-01-12', 
+        date = '2020-01-23', 
         model_fname = 'gaussian_process', 
         api_key = KEY,
         return_std = True
