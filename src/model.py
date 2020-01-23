@@ -1,10 +1,11 @@
 import numpy as np
 
-def train_forest(X, y, cv: int = 10, n_iter: int = 100, 
+def train_forest(X, y, cv: int = 10, n_iter: int = 1000, 
     model_fname: str = 'random_forest', data_dir: str = 'data') -> dict:
     ''' Train a random forest. '''
     from sklearn.model_selection import cross_val_score, RandomizedSearchCV
-    from sklearn.ensemble import RandomForestRegressor
+    from sklearn.ensemble import RandomForestRegressor, ExtraTreesRegressor
+    import numpy as np
     import pickle
     from utils import get_path
 
@@ -12,13 +13,15 @@ def train_forest(X, y, cv: int = 10, n_iter: int = 100,
         'n_estimators': list(range(100, 2000, 100)),
         'max_features': ['auto', 'sqrt'],
         'max_depth': list(range(10, 100, 10)) + [None],
-        'min_samples_split': [2, 5, 10],
-        'min_samples_leaf': [1, 2, 4],
+        'min_samples_split': list(range(2, 10)),
+        'min_samples_leaf': list(range(1, 5)),
+        'min_weight_fraction_leaf': list(np.arange(0, 0.5, 0.05)),
+        'min_impurity_decrease': list(np.arange(0, 0.5, 0.05)),
         'bootstrap': [True, False]
     }
 
     rnd_search = RandomizedSearchCV(
-        estimator = RandomForestRegressor(), 
+        estimator = ExtraTreesRegressor(), 
         param_distributions = hyperparams, 
         n_iter = n_iter, 
         cv = cv, 
@@ -49,24 +52,29 @@ def train_forest(X, y, cv: int = 10, n_iter: int = 100,
 
 def train_gaussian_process(X, y, cv: int = 10, data_dir: str = 'data',
     model_fname: str = 'gaussian_process'):
+    from sklearn.pipeline import Pipeline
+    from sklearn.preprocessing import MinMaxScaler
     from sklearn.model_selection import cross_val_score, train_test_split
     from sklearn.gaussian_process import GaussianProcessRegressor, kernels
     import pickle
     from utils import get_path
 
-    k = kernels.RationalQuadratic()
-    model = GaussianProcessRegressor(kernel = k, n_restarts_optimizer = 100)
+    gaussian_process = GaussianProcessRegressor(
+        kernel = kernels.RationalQuadratic() + kernels.ExpSineSquared(), 
+        n_restarts_optimizer = 10,
+        alpha = 0.4
+    )
+    model = Pipeline([
+        ('scaler', MinMaxScaler()),
+        ('gaussian_process', gaussian_process),
+    ])
 
-    X_train, X_val, y_train, y_val = train_test_split(X, y)
-    scores = cross_val_score(model, X, y, cv = cv, n_jobs = -1, verbose = 1)
-
+    scores = cross_val_score(model, X, y, cv = cv, n_jobs = -1)
     output = {'model': model.fit(X, y), 'scores': np.abs(scores)}
 
     with open(get_path(data_dir) / model_fname, 'wb') as f:
         pickle.dump(output, f)
-
     return output
-
 
 def load_model_data(fname: str = 'model', data_dir: str = 'data'):
     ''' Load a machine learning model. '''
@@ -120,13 +128,14 @@ if __name__ == '__main__':
     with open(get_path('darksky_key.txt'), 'r') as file_in:
         KEY = file_in.read().rstrip()
 
-    #X, y = get_data()
-    #train_gaussian_process(X, y)
+    X, y = get_data()
+    output = train_forest(X, y)
+    print(output['scores'])
 
-    demand = predict_demand(
-        date = '2020-01-23', 
-        model_fname = 'gaussian_process', 
-        api_key = KEY,
-        return_std = True
-    )
-    print(demand)
+    #demand = predict_demand(
+    #    date = '2020-01-23', 
+    #    model_fname = 'random_forest', 
+    #    api_key = KEY,
+    #    return_std = True
+    #)
+    #print(demand)
