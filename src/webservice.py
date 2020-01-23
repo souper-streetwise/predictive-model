@@ -14,7 +14,7 @@ def predict():
     import json
 
     api_key = request.args['api_key']
-    model_fname = request.args.get('model_fname', 'gaussian_process')
+    model_fname = request.args.get('model_fname', 'random_forest')
     data_dir = request.args.get('data_dir', 'data')
     date = request.args.get('date', datetime.now() + timedelta(days = 1))
 
