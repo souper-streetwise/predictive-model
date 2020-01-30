@@ -32,5 +32,17 @@ def month(inputs):
     is_idx = isinstance(inputs, int)
     return months[inputs - 1] if is_idx else months.index(inputs) + 1
 
+def load_model_data(data_dir: str = 'data'):
+    ''' Load a machine learning model. '''
+    from utils import get_path
+    import pickle
+    model_path = get_path(data_dir) / 'extra_trees'
+    if model_path.is_file():
+        with open(model_path, 'rb') as f:
+            return pickle.load(f)
+    else:
+        raise FileNotFoundError(f'No model found in {data_dir}.')
+
+
 if __name__ == '__main__':
     pass
