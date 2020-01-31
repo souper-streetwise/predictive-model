@@ -1,12 +1,12 @@
 def predict_demand(date: str, api_key: str, data_dir: str = 'data', 
-    percentile: int = 90) -> int:
+    percentile: int = 90, model_name: str = 'soup_model') -> int:
     from datetime import datetime
     import pandas as pd
+    import numpy as np
     from data import get_bristol_weather
     from utils import precip_type
-    import numpy as np
 
-    model = load_model_data(data_dir = data_dir)['model']
+    model = load_model_data(model_name, data_dir = data_dir)['model']
 
     if isinstance(date, str):
         date = datetime.strptime(date, '%Y-%m-%d')
