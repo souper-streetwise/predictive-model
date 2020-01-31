@@ -24,7 +24,6 @@ def date_iter(start_date, end_date) -> iter:
         curr_date += timedelta(days = 1)
 
 def get_dates(start_date, end_date) -> list:
-    from datetime import timedelta
     return [date for date in date_iter(start_date, end_date)]
 
 def precip_type(inputs):
