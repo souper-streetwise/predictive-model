@@ -1,4 +1,4 @@
-from flask import Flask
+from flask import Flask, request, render_template
 
 app = Flask(__name__)
 
@@ -6,47 +6,61 @@ app = Flask(__name__)
 def index():
     return ''
 
-@app.route('/predict')
-def predict():
-    from flask import request
+@app.route('/soup', methods = ['POST', 'GET'])
+def soup():
     from datetime import datetime, timedelta
     from inference import predict_demand
     import json
+    import sys
 
-    api_key = request.args['api_key']
-    data_dir = request.args.get('data_dir', 'data')
-    percentile = request.args.get('percentile', 90)
-    date = request.args.get('date', datetime.now() + timedelta(days = 1))
+    sys.path.append('soup')
 
-    if isinstance(date, datetime): date = datetime.strftime(date, '%Y-%m-%d')
+    data_dict = request.form if request.method == 'POST' else request.args
+    if not data_dict:
+        return render_template('soup.html')
+
+    if data_dict.get('api_key') is None:
+        with open(Path('soup') / 'darksky_key.txt', 'r') as f:
+            api_key = f.read().rstrip()
+    else:
+        api_key = data_dict['api_key']
+
+    data_dir = data_dict.get('data_dir', '.data')
+    percentile = data_dict.get('percentile', 90)
+    if data_dict.get('date') is None:
+        data_dict['date'] = datetime.now() + timedelta(days = 1)
+
+    if isinstance(data_dict['date'], datetime):
+        data_dict['date'] = datetime.strftime(data_dict['date'], '%Y-%m-%d')
 
     prediction = predict_demand(
-        date = date,
+        date = data_dict['date'],
         api_key = api_key,
         data_dir = data_dir,
         percentile = percentile
     )
 
-    # Checks if prediction is NaN
-    if prediction != prediction: 
+    if prediction is None:
         error = 'We cannot predict more than nine days away!'
-        result = {'date': date, 'error': error}
+        result = {'date': data_dict['date'], 'error': error}
 
     else:
         if percentile is None:
-            result = {'date': date, 'prediction': prediction}
+            result = {'prediction': prediction}
         else:
             lower = prediction[0]
-            median = prediction[1]
             upper = prediction[2]
+            prediction = prediction[1]
             result = {
-                'date': date, 
-                'prediction': median, 
+                'prediction': prediction,
                 'lower': lower,
                 'upper': upper
             }
-    
-    return json.dumps(result)
+
+    if request.method == 'POST':
+        return render_template('soup.html', **result, **data_dict)
+    else:
+        return json.dumps(result)
 
 if __name__ == '__main__':
     app.run(debug = True, host = '0.0.0.0')
