@@ -1,16 +1,25 @@
 def get_data(fname: str = 'dataset', data_dir: str = 'data', 
-    normalise: bool = True, include_date: bool = False):
+    include_date: bool = False, include_month: bool = True,
+    include_day_of_week: bool = True, include_day_of_month: bool = True,
+    **kwargs):
     import pandas as pd
     from utils import get_path, precip_type, month, day_of_week
 
     df = pd.read_csv(get_path(data_dir) / f'{fname}.tsv', sep = '\t', 
         header = 0).drop(columns = ['locA', 'locB'])
 
-    if not include_date: df.drop(columns = ['date'], inplace = True)
+    droppers = []
+    if not include_date: droppers.append('date')
+    if not include_day_of_week: droppers.append('day_of_week')
+    if not include_day_of_month: droppers.append('day_of_month')
+    if not include_month: droppers.append('month')
+    if droppers: df.drop(columns = droppers, inplace = True)
 
     df['precip_type'] = df['precip_type'].map(precip_type)
-    df['month'] = df['month'].map(month)
-    df['day_of_week'] = df['day_of_week'].map(day_of_week)
+    if 'month' not in droppers:
+        df['month'] = df['month'].map(month)
+    if 'day_of_week' not in droppers:
+        df['day_of_week'] = df['day_of_week'].map(day_of_week)
 
     X = df[[col for col in df.columns if col != 'total']].copy()
     y = df['total']
@@ -49,7 +58,6 @@ def build_data(api_key: str, raw_fname: str = 'initial_data_no_duplicates.csv',
     return df
 
 def extract_date_data(dates: list):
-    from datetime import datetime
     import pandas as pd
     from utils import day_of_week, month
     date_data = {
@@ -59,8 +67,8 @@ def extract_date_data(dates: list):
     }
     return pd.DataFrame(date_data)
 
-def extract_past_weather_data(dates: list, api_key: str, 
-    fname: str = 'weather_data.tsv', data_dir: str = 'data'):
+def extract_past_weather_data(dates: list, fname: str = 'weather_data.tsv', 
+    data_dir: str = 'data'):
     import pandas as pd
     from utils import get_path
 
@@ -187,5 +195,5 @@ if __name__ == '__main__':
     with open(get_path('darksky_key.txt'), 'r') as file_in:
         KEY = file_in.read().rstrip()
 
-    #build_data(api_key = KEY)
+    build_data(api_key = KEY)
     print(get_data())
