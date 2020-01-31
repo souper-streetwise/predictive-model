@@ -1,10 +1,14 @@
+from typing import Union, Sequence
+
 def predict_demand(date: str, api_key: str, data_dir: str = 'data', 
-    percentile: int = 90, model_name: str = 'soup_model') -> int:
+    percentile: Union[int, None] = 90, model_name: str = 'soup_model'
+    ) -> Union[float, Sequence[float]]:
+
     from datetime import datetime
     import pandas as pd
     import numpy as np
     from data import get_bristol_weather
-    from utils import precip_type
+    from utils import precip_type, load_model_data
 
     model = load_model_data(model_name, data_dir = data_dir)['model']
 
@@ -22,17 +26,26 @@ def predict_demand(date: str, api_key: str, data_dir: str = 'data',
 
     data_dict = {k: [v] for k, v in {**date_data, **weather_data}.items()}
     df = pd.DataFrame(data_dict)
-    if df.iloc[0, :].isna().any(): return np.nan
+    if df.iloc[0, :].isna().any(): return None
 
     percentiles = [50 - percentile / 2, 50, 50 + percentile / 2]
-    preds = np.around(model.predict(df, percentiles = percentiles), 2)
-    return preds.ravel() if percentiles is not None else preds[0]
+    preds = np.around(model(df, percentiles = percentiles), 2)
+    return preds.ravel() if percentile is not None else preds[0]
 
 if __name__ == '__main__':
     from utils import get_path
+    from datetime import datetime, timedelta
+    from argparse import ArgumentParser
+
+    tomorrow = datetime.today() + timedelta(days = 1)
+    tomorrow = datetime.strftime(tomorrow, '%Y-%m-%d')
+
+    parser = ArgumentParser()
+    parser.add_argument('--date', default = tomorrow)
+    args = vars(parser.parse_args())
 
     with open(get_path('darksky_key.txt'), 'r') as file_in:
         KEY = file_in.read().rstrip()
 
-    demand = predict_demand(date = '2020-01-23', api_key = KEY)
+    demand = predict_demand(date = args['date'], api_key = KEY)
     print(demand)
