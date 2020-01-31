@@ -26,10 +26,13 @@ class pExtraTreesRegressor(ExtraTreesRegressor):
                 y_hats[:, idx] = estimator.predict(X, check_input = False)
 
         if percentiles is None:
-            return np.mean(y_hats, axis = -1)
+            return np.percentile(y_hats, 50, axis = -1)
         else:
-            return np.stack([np.percentile(y_hats, p, axis = -1)
+            return np.stack([np.percentile(y_hats, p, axis = -1) 
                 for p in percentiles], axis = -1)
 
+    def __call__(self, *args, **kwargs):
+        return self.predict(*args, **kwargs)
+ 
 if __name__ == '__main__':
     pass
