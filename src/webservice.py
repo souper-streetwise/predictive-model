@@ -10,11 +10,10 @@ def index():
 def predict():
     from flask import request
     from datetime import datetime, timedelta
-    from model import predict_demand
+    from inference import predict_demand
     import json
 
     api_key = request.args['api_key']
-    model_fname = request.args.get('model_fname', 'random_forest')
     data_dir = request.args.get('data_dir', 'data')
     percentile = request.args.get('percentile', 90)
     date = request.args.get('date', datetime.now() + timedelta(days = 1))
@@ -24,7 +23,6 @@ def predict():
     prediction = predict_demand(
         date = date,
         api_key = api_key,
-        model_fname = model_fname,
         data_dir = data_dir,
         percentile = percentile
     )
