@@ -1,45 +1,50 @@
-def train_forest(X, y, cv: int = 10, n_iter: int = 1000, 
-    data_dir: str = 'data') -> dict:
+def train_model(X, y, cv: int = 10, n_iter: int = 10, data_dir: str = 'data'):
     ''' Train a random forest. '''
-    from sklearn.model_selection import cross_val_score, RandomizedSearchCV
+    from sklearn.model_selection import cross_val_score
+    from skopt import BayesSearchCV
+    from skopt.space import Real, Categorical, Integer
     from models import pExtraTreesRegressor
     import pickle
     from utils import get_path
     import numpy as np
 
     hyperparams = {
-        'n_estimators': list(range(100, 2000, 100)),
-        'max_features': ['auto', 'sqrt'],
-        'max_depth': list(range(10, 100, 10)) + [None],
-        'min_samples_split': list(range(2, 10)),
-        'min_samples_leaf': list(range(1, 5)),
-        'min_weight_fraction_leaf': list(np.arange(0, 0.5, 0.05)),
-        'min_impurity_decrease': list(np.arange(0, 0.5, 0.05)),
-        'bootstrap': [True, False]
+        'n_estimators': Integer(100, 2000),
+        'max_features': Categorical(['auto', 'sqrt']),
+        'max_depth': Integer(10, 1000),
+        'min_samples_split': Integer(2, 10),
+        'min_samples_leaf': Integer(1, 5),
+        'min_weight_fraction_leaf': Real(0, 0.5, prior='uniform'),
+        'min_impurity_decrease': Real(0, 0.5, prior='uniform'),
+        'bootstrap': Categorical([True, False])
     }
 
-    rnd_search = RandomizedSearchCV(
-        estimator = pExtraTreesRegressor(), 
-        param_distributions = hyperparams, 
-        n_iter = n_iter, 
-        cv = cv, 
-        verbose = 1, 
+    bayes_search = BayesSearchCV(
+        estimator = pExtraTreesRegressor(criterion = 'mae'), 
+        search_spaces = hyperparams, 
+        n_iter = n_iter,
+        scoring = 'neg_mean_absolute_error',
+        cv = cv,
         n_jobs = -1
     )
 
-    rnd_search.fit(X, y)
-    model = rnd_search.best_estimator_
+    bayes_search.fit(X, y)
+    model = bayes_search.best_estimator_
+
+    print('Search finished; the best parameters found were:')
+    print(bayes_search.best_params_)
 
     feat_dict = dict(list(zip(model.feature_importances_, X.columns)))
     feat_sorted = sorted(feat_dict, reverse = True)
     feat_imps = [(feat_dict[imp], imp) for imp in feat_sorted]
 
-    scores = cross_val_score(model, X, y, cv = cv, n_jobs = -1, verbose = 1)
+    scores = cross_val_score(model, X, y, cv = cv, n_jobs = -1, 
+        scoring = 'neg_mean_absolute_error')
 
     output = {
         'model': model, 
         'scores': np.abs(scores), 
-        'params': rnd_search.best_params_,
+        'params': bayes_search.best_params_,
         'feat_imps': feat_imps
     }
 
@@ -56,5 +61,5 @@ if __name__ == '__main__':
         KEY = file_in.read().rstrip()
 
     X, y = get_data()
-    model_data = train_forest(X, y)
+    model_data = train_model(X, y)
     print(model_data['scores'])
