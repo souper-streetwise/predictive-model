@@ -2,7 +2,7 @@
 <html>
 
   <title>
-    StreetWise: Predicting demand for Bristol Soup Run Trust
+    StreetWise: Predict Bristol Soup Run Trust demand
   </title>
 
   <meta charset="UTF-8">
@@ -31,6 +31,7 @@
     .boxed {
         opacity: 60%;
         background-color: white;
+        color: black;
     }
   </style>
 
@@ -41,14 +42,13 @@
       <h1 class="w3-jumbo w3-animate-top" align=center>
         StreetWise
       </h1>
-      <p align=center size=5>
-        <font size=5>Predicting demand for Bristol Soup Run Trust</font>
+      <p align=center>
+        <font size=5>Predict Bristol Soup Run Trust demand</font>
       </p>
       <hr class="w3-border-grey" style="margin:auto;width:40%">
       <p class="w3-large w3-center">
         <form action="https://saattrupdan.pythonanywhere.com/soup" method="POST" id="soupform">
           <p align=center>
-            <font size=4>Date: </font>
             <input type="date" name="date" form="soupform" id="date" required autofocus onkeydown="if (event.keyCode == 13) { this.form.submit(); return false; }" max="nineDaysAhead" min="2018-01-01">
             <input type="submit" value="Submit"/>
           </p>
