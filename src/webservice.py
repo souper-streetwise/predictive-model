@@ -1,6 +1,10 @@
 from flask import Flask, request, render_template
+from pathlib import Path
+import sys
 
-app = Flask(__name__)
+sys.path.append(Path.cwd())
+
+app = Flask(__name__, template_folder = Path('static'))
 
 @app.route('/')
 def index():
@@ -9,11 +13,11 @@ def index():
 @app.route('/soup', methods = ['POST', 'GET'])
 def soup():
     from datetime import datetime, timedelta
-    from inference import predict_demand
+    from soup.inference import predict_demand
     import json
-    import sys
 
-    sys.path.append('soup')
+    # Add soup_model to PATH to ensure that model can be unpickled properly
+    sys.path.append(Path.cwd() / 'soup' / 'soup_model')
 
     data_dict = request.form if request.method == 'POST' else request.args
     if not data_dict:
@@ -61,6 +65,7 @@ def soup():
         return render_template('soup.html', **result, **data_dict)
     else:
         return json.dumps(result)
+
 
 if __name__ == '__main__':
     app.run(debug = True, host = '0.0.0.0')
