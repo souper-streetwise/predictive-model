@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html>
+
+  <title>
+    StreetWise: Predictions for Bristol Soup Run Trust
+  </title>
+
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Raleway">
+
+  <style>
+    body, h1 {
+      font-family: "Raleway", sans-serif;
+      color: white
+    }
+    body, html {
+      height: 100%;
+    }
+    textarea {
+        width: 100%;
+    }
+    .bgimg {
+      background-image: url(https://filedn.com/lRBwPhPxgV74tO0rDoe8SpH/soup_data/bristol.jpg);
+      min-height: 100%;
+      background-position: center bottom;
+      background-size: cover;
+      filter: blur(5px);
+    }
+    .boxed {
+        opacity: 60%;
+        background-color: white;
+    }
+  </style>
+
+  <body>
+    <div class="bgimg w3-display-container w3-animate-opacity w3-text-white">
+    </div>
+    <div class="w3-display-middle">
+      <h1 class="w3-jumbo w3-animate-top" align=center>
+        StreetWise
+      </h1>
+      <p align=center size=5>
+        <font size=5>Predictions for Bristol Soup Run Trust</font>
+      </p>
+      <hr class="w3-border-grey" style="margin:auto;width:40%">
+      <p class="w3-large w3-center">
+        <form action="https://saattrupdan.pythonanywhere.com/soup" method="POST" id="soupform">
+          <p align=left>
+            <font size=4>Date: </font><br>
+            <textarea type="text" rows="1" cols="60" name="date" form="soupform" required autofocus onkeydown="if (event.keyCode == 13) { this.form.submit(); return false; }">{{ date }}</textarea>
+          </p>
+          <p align=center><input type="submit" value="Submit"/></p>
+        </form>
+
+        {% if prediction %}
+          <div align=center class=boxed>
+            <table style="width:100%">
+              <tr>
+                <th>Date</th>
+                <th>Prediction</th>
+                <th>Lower bound</th>
+                <th>Upper bound</th>
+              </tr>
+              <tr align=center>
+                <td>{{ date }}</td>
+                <td>{{ prediction }}</td>
+                <td>{{ lower }}</td>
+                <td>{{ upper }}</td>
+              </tr>
+            </table>
+          </div>
+        {% endif %}
+
+      </p>
+    </div>
+  </div>
+  </body>
+
+</html>
