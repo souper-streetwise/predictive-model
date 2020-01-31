@@ -31,25 +31,5 @@ class pExtraTreesRegressor(ExtraTreesRegressor):
             return np.stack([np.percentile(y_hats, p, axis = -1)
                 for p in percentiles], axis = -1)
 
-class TQDM(object):
-    ''' TQDM class to be used in Bayesian optimisation with skopt. '''
-
-    def __init__(self, update_amount: int = 1, **kwargs):
-        from tqdm.auto import tqdm
-        self.bar = tqdm(**kwargs)
-        self.update_amount = update_amount
-
-    def __enter__(self):
-        return self
-
-    def __exit__(self, *args, **kwargs):
-        self.close()
-
-    def __call__(self, x):
-        self.bar.update(self.update_amount)
-
-    def close(self):
-        self.bar.close()
-
 if __name__ == '__main__':
     pass
