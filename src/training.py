@@ -28,16 +28,20 @@ def train_model(X: object, y: object,
     min_impurity_decrease = round(min_impurity_decrease, 2)
     if isinstance(max_depth, int) and max_depth > 1000: 
         max_depth = None
-    if isinstance(min_samples_split, float): 
+    if isinstance(min_samples_split, float):
         min_samples_split = round(min_samples_split, 2)
+        if min_samples_split == 0.0: min_samples_split = 2
     if isinstance(min_samples_leaf, float):
         min_samples_leaf = round(min_samples_leaf, 2)
+        if min_samples_leaf == 0.0: min_samples_leaf = 1
     if isinstance(max_features, float):
         max_features = round(max_features, 2)
+        if max_features == 0.0: max_features = 1
     if isinstance(max_leaf_nodes, int) and max_leaf_nodes > 1000:
         max_leaf_nodes = None
     if isinstance(max_samples, float):
         max_samples = round(max_samples, 2)
+        if max_samples == 0.0: max_samples = 1
 
     model = pExtraTreesRegressor(
         n_estimators = n_estimators,
@@ -84,12 +88,14 @@ def get_best_params(X: object, y: object,
     data_dir: str = 'data', 
     workers: int = -1, 
     save_log: bool = True,
+    model_name: Union[str, None] = None,
     random_state: Union[int, None] = 42,
     **kwargs) -> Dict[str, Union[float, int, bool, str]]:
 
     from skopt import BayesSearchCV
     from skopt.space import Real, Categorical, Integer
     import warnings
+    from datetime import datetime
     from model import pExtraTreesRegressor
     from utils import get_path, TQDM
 
@@ -124,7 +130,9 @@ def get_best_params(X: object, y: object,
 
     if save_log:
         import pandas as pd
-        log_path = get_path(data_dir) / 'training_log.csv'
+        log_id = f'{model_name}_' if model_name is not None else ''
+        log_id += datetime.now().strftime('%Y%m%dT%H%M%S')
+        log_path = get_path(data_dir) / f'log_{log_id}.csv'
         pd.DataFrame(search.cv_results_).to_csv(log_path, index = False)
     
     return search.best_params_
