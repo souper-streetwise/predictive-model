@@ -41,7 +41,7 @@ def train_model(X: object, y: object,
         max_leaf_nodes = None
     if isinstance(max_samples, float):
         max_samples = round(max_samples, 2)
-        if max_samples == 0.0: max_samples = 1
+        if max_samples == 1.0: max_samples = None
 
     model = pExtraTreesRegressor(
         n_estimators = n_estimators,
@@ -101,7 +101,7 @@ def get_best_params(X: object, y: object,
 
     hyperparams = {
         'n_estimators': Integer(10, 10000),
-        'max_depth': Integer(10, 10000),
+        'max_depth': Integer(2, 10000),
         'min_samples_split': Real(eps, 1., prior = 'uniform'),
         'min_samples_leaf': Real(eps, 0.5, prior = 'uniform'),
         'min_weight_fraction_leaf': Real(0., 0.5, prior = 'uniform'),
