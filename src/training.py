@@ -142,6 +142,10 @@ if __name__ == '__main__':
     from data import get_data
     from argparse import ArgumentParser
 
+    def int_float(input: str):
+        num = float(input)
+        return num if num % 1 else int(num)
+
     parser = ArgumentParser()
     parser.add_argument('--n_iter', type = int, default = 100)
     parser.add_argument('--cv', type = int, default = 10)
@@ -151,11 +155,27 @@ if __name__ == '__main__':
     parser.add_argument('--save_model', type = boolean, default = True)
     parser.add_argument('--model_name', default = 'soup_model')
     parser.add_argument('--include_month', type = boolean, default = True)
-    parser.add_argument('--include_day_of_week', type = boolean, default=True)
-    parser.add_argument('--include_day_of_month', type = boolean, default=True)
+    parser.add_argument('--include_day_of_week', type = boolean, 
+        default = True)
+    parser.add_argument('--include_day_of_month', type = boolean, 
+        default = True)
+    parser.add_argument('--optimise', type = boolean, default = True)
+    parser.add_argument('--n_estimators', type = int, default = 100)
+    parser.add_argument('--max_depth', type = int, default = None)
+    parser.add_argument('--min_samples_split', type = int_float, default = 2)
+    parser.add_argument('--min_samples_leaf', type = int_float, default = 1)
+    parser.add_argument('--min_weight_fraction_leaf', type = float, 
+        default = 0.)
+    parser.add_argument('--max_features', type = str, default = 'auto')
+    parser.add_argument('--max_leaf_nodes', type = int, default = None)
+    parser.add_argument('--min_impurity_decrease', type = float, 
+        default = 0.)
+    parser.add_argument('--bootstrap', type = boolean, default = False)
+    parser.add_argument('--max_samples', type = int_float, default = None)
+    parser.add_argument('--random_state', type = int, default = 42)
     args = vars(parser.parse_args())
 
     X, y = get_data(**args)
-    params = get_best_params(X, y, **args)
-    model_data = train_model(X, y, **params, **args)
+    if args['optimise']: args = {**args, **get_best_params(X, y, **args)}
+    model_data = train_model(X, y, **args)
     print(model_data)
