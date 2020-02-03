@@ -56,9 +56,9 @@ def soup():
             upper = prediction[2]
             prediction = prediction[1]
             result = {
-                'prediction': prediction,
-                'lower': lower,
-                'upper': upper
+                'prediction': int(prediction),
+                'lower': int(lower),
+                'upper': int(upper)
             }
 
     if request.method == 'POST':
