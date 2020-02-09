@@ -1,7 +1,7 @@
 from typing import Union, Dict
 
 def train_model(X: object, y: object,
-    n_estimators: int = 100,
+    n_estimators: int = 500,
     max_depth: Union[int, None] = None,
     min_samples_split: Union[int, float] = 2,
     min_samples_leaf: Union[int, float] = 1,
@@ -9,14 +9,13 @@ def train_model(X: object, y: object,
     max_features: Union[int, float, str, None] = 'auto',
     max_leaf_nodes: Union[int, None] = None,
     min_impurity_decrease: float = 0.,
-    bootstrap: bool = False,
     max_samples: Union[int, float, None] = None,
     save_model: bool = True,
     cv: int = 10,
     workers: int = -1,
     data_dir: str = 'data',
     model_name: str = 'soup_model',
-    random_state: Union[int, None] = 42,
+    criterion: str = 'mse',
     **kwargs) -> Dict[str, object]:
 
     from sklearn.model_selection import cross_val_score
@@ -52,11 +51,9 @@ def train_model(X: object, y: object,
         max_features = max_features,
         max_leaf_nodes = max_leaf_nodes,
         min_impurity_decrease = min_impurity_decrease,
-        bootstrap = bootstrap,
         max_samples = max_samples,
-        criterion = 'mae', 
+        criterion = criterion,
         n_jobs = workers,
-        random_state = random_state
     )
 
     score = -cross_val_score(model, X, y, 
@@ -89,7 +86,6 @@ def get_best_params(X: object, y: object,
     workers: int = -1, 
     save_log: bool = True,
     model_name: Union[str, None] = None,
-    random_state: Union[int, None] = 42,
     **kwargs) -> Dict[str, Union[float, int, bool, str]]:
 
     from skopt import BayesSearchCV
@@ -100,7 +96,7 @@ def get_best_params(X: object, y: object,
     from utils import get_path, TQDM
 
     hyperparams = {
-        'n_estimators': Integer(10, 10000),
+        'n_estimators': Integer(1000, 20000),
         'max_depth': Integer(2, 10000),
         'min_samples_split': Real(eps, 1., prior = 'uniform'),
         'min_samples_leaf': Real(eps, 0.5, prior = 'uniform'),
@@ -108,11 +104,11 @@ def get_best_params(X: object, y: object,
         'max_features': Categorical(['auto', 'sqrt', 'log2']),
         'max_leaf_nodes': Integer(10, 10000),
         'min_impurity_decrease': Real(0., 1., prior = 'uniform'),
-        'bootstrap': Categorical([True, False]),
-        'max_samples': Real(0.1, 1. - eps, prior = 'uniform')
+        'max_samples': Real(0.1, 1. - eps, prior = 'uniform'),
+        'criterion': Categorical(['mse', 'mae'])
     }
     
-    estimator = pExtraTreesRegressor(criterion = 'mae', n_jobs = workers)
+    estimator = pExtraTreesRegressor(n_jobs = workers)
     search = BayesSearchCV(
         estimator = estimator, 
         search_spaces = hyperparams, 
@@ -170,9 +166,7 @@ if __name__ == '__main__':
     parser.add_argument('--max_leaf_nodes', type = int, default = None)
     parser.add_argument('--min_impurity_decrease', type = float, 
         default = 0.)
-    parser.add_argument('--bootstrap', type = boolean, default = False)
     parser.add_argument('--max_samples', type = int_float, default = None)
-    parser.add_argument('--random_state', type = int, default = 42)
     args = vars(parser.parse_args())
 
     X, y = get_data(**args)
