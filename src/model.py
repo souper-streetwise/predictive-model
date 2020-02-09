@@ -58,10 +58,10 @@ class pExtraTreesRegressor(ExtraTreesRegressor):
     def fit(self, X, *args, **kwargs):
         preds = super(pExtraTreesRegressor, self).fit(X, *args, **kwargs)
         self.ntrain = X.shape[0]
-        self.inbag = self.calculate_inbag()
+        self.inbag = self.__calculate_inbag()
         return preds
 
-    def get_bootstrap_sample_size(self):
+    def __get_bootstrap_sample_size(self):
         ''' Compute the size of the bootstrap samples. '''
         if self.max_samples is None: 
             return self.ntrain
@@ -70,7 +70,7 @@ class pExtraTreesRegressor(ExtraTreesRegressor):
         elif isinstance(self.max_samples, float): 
             return int(round(self.ntrain * self.max_samples))
 
-    def get_random_states(self):
+    def __get_random_states(self):
         ''' Compute random states for all tree estimators. '''
         rnd_states: Sequence[np.random.RandomState] = []
         for tree in self.estimators_:
@@ -83,18 +83,17 @@ class pExtraTreesRegressor(ExtraTreesRegressor):
                 rnd_states.append(seed)
         return rnd_states
 
-    def calculate_inbag(self):
+    def __calculate_inbag(self):
         ''' Compute the samples used to create the bagged estimators. '''
-        if self.inbag is None:
-            self.inbag = np.zeros((self.ntrain, self.n_estimators), 
-                dtype = np.int32)
+        self.inbag = np.zeros((self.ntrain, self.n_estimators), 
+            dtype = np.int32)
 
-        bootstrap_sample_size = self.get_bootstrap_sample_size()
+        bootstrap_sample_size = self.__get_bootstrap_sample_size()
 
         def sampler(random_state: np.random.RandomState):
             return random_state.randint(0, self.ntrain, bootstrap_sample_size)
 
-        sample_idxs = [sampler(rnd) for rnd in self.get_random_states()]
+        sample_idxs = [sampler(rnd) for rnd in self.__get_random_states()]
 
         for idx in range(self.n_estimators):
             self.inbag[:, idx] = np.bincount(sample_idxs[idx], 
@@ -103,7 +102,7 @@ class pExtraTreesRegressor(ExtraTreesRegressor):
         return self.inbag
 
     def predict(self, X, return_cis: bool = False, alpha: float = 0.99):
-
+        ''' Predict demand from weather- and date features. '''
         ntest: int
         preds: FloatMatrix
         mean_preds: FloatVector
@@ -120,7 +119,11 @@ class pExtraTreesRegressor(ExtraTreesRegressor):
         mean_preds = np.mean(preds, axis = 1)
 
         if not return_cis:
-            return mean_preds
+            mean_preds = np.round(mean_preds).astype(np.int32)
+            if mean_preds.shape[0] == 1:
+                return mean_preds[0]
+            else:
+                return mean_preds
 
         else:
             cpreds: FloatVector 
@@ -145,25 +148,30 @@ class pExtraTreesRegressor(ExtraTreesRegressor):
 
             # Compute the bias correction
             bootstrap_var = np.mean(cpreds.view() ** 2, axis = 1)
-            bootstrap_sample_size = self.get_bootstrap_sample_size()
+            bootstrap_sample_size = self.__get_bootstrap_sample_size()
             bias = bootstrap_sample_size * bootstrap_var.view() 
             bias /= self.n_estimators
             V_IJ_unbiased = V_IJ - bias
 
             # Compute the standard errors of the predictions
-            std_errs = np.sqrt(V_IJ_unbiased / self.n_estimators)
+            std_errs = np.sqrt(V_IJ_unbiased * (1 + 1 / self.n_estimators))
 
             # Compute the radii of the alpha confidence intervals,
             # using a t-distribution
             t_factor = t.ppf((1 + alpha) / 2., self.ntrain - 1)
             radii = t_factor * std_errs.view()
 
-            # Build the confidence intervals
+            # Build the prediction intervals
             intervals = np.empty((ntest, 2), dtype = np.float32)
             intervals[:, 0] = mean_preds - radii
             intervals[:, 1] = mean_preds + radii
 
-            return mean_preds, intervals
+            mean_preds = np.round(mean_preds).astype(np.int32)
+            intervals = np.round(intervals).astype(np.int32)
+            if mean_preds.shape[0] == 1:
+                return mean_preds[0], tuple(intervals[0])
+            else:
+                return mean_preds, intervals
 
     def __call__(self, *args, **kwargs):
         return self.predict(*args, **kwargs)
