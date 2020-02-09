@@ -1,8 +1,8 @@
-from typing import Union, Sequence
+from typing import Union, Sequence, Tuple
 
 def predict_demand(date: str, api_key: str, data_dir: str = 'data', 
-    percentile: Union[int, None] = 90, model_name: str = 'soup_model'
-    ) -> Union[float, Sequence[float]]:
+    alpha: float = .99, model_name: str = 'soup_model'
+    ) -> Tuple[Sequence[float], Sequence[Tuple[float, float]]]:
 
     from datetime import datetime
     import pandas as pd
@@ -28,9 +28,8 @@ def predict_demand(date: str, api_key: str, data_dir: str = 'data',
     df = pd.DataFrame(data_dict)
     if df.iloc[0, :].isna().any(): return None
 
-    percentiles = [50 - percentile / 2, 50, 50 + percentile / 2]
-    preds = np.around(model(df, percentiles = percentiles), 2)
-    return preds.ravel() if percentile is not None else preds[0]
+    preds, intervals = model(df, return_cis = True, alpha = alpha)
+    return preds, intervals
 
 if __name__ == '__main__':
     from utils import get_path
