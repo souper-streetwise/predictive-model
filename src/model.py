@@ -12,7 +12,7 @@ class pExtraTreesRegressor(ExtraTreesRegressor):
     ''' ExtraTreesRegressor with confidence intervals. '''
 
     def __init__(self,
-        n_estimators: int = 1000,
+        n_estimators: int = 5000,
         criterion: str = 'mse',
         max_depth: Union[int, None] = None,
         min_samples_split: Union[int, float, None] = 2,
@@ -32,7 +32,7 @@ class pExtraTreesRegressor(ExtraTreesRegressor):
         ntrain: Union[int, None] = None,
         inbag: Union[IntMatrix, None] = None): 
 
-        super(pExtraTreesRegressor, self).__init__(
+        super().__init__(
             n_estimators = n_estimators,
             criterion = criterion,
             max_depth = max_depth,
@@ -56,7 +56,7 @@ class pExtraTreesRegressor(ExtraTreesRegressor):
         self.inbag = inbag
 
     def fit(self, X, *args, **kwargs):
-        preds = super(pExtraTreesRegressor, self).fit(X, *args, **kwargs)
+        preds = super().fit(X, *args, **kwargs)
         self.ntrain = X.shape[0]
         self.inbag = self.__calculate_inbag()
         return preds
@@ -101,7 +101,7 @@ class pExtraTreesRegressor(ExtraTreesRegressor):
 
         return self.inbag
 
-    def predict(self, X, return_cis: bool = False, alpha: float = 0.99):
+    def predict(self, X, return_intervals: bool = False, alpha: float = 0.99):
         ''' Predict demand from weather- and date features. '''
         ntest: int
         preds: FloatMatrix
@@ -118,7 +118,7 @@ class pExtraTreesRegressor(ExtraTreesRegressor):
         # Compute the predictions
         mean_preds = np.mean(preds, axis = 1)
 
-        if not return_cis:
+        if not return_intervals:
             mean_preds = np.round(mean_preds).astype(np.int32)
             if mean_preds.shape[0] == 1:
                 return mean_preds[0]
