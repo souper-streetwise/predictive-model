@@ -16,6 +16,14 @@ def predict_demand(date: str, api_key: str, data_dir: str = 'data',
         date = datetime.strptime(date, '%Y-%m-%d')
 
     weather_data = get_bristol_weather(date, api_key = api_key)
+
+    # Choose only the independent features
+    independent_feats = ['date', 'precip_intensity_avg', 'precip_type',
+        'wind_speed_avg', 'temp_avg', 'humidity']
+    redundant_feats = [feat for feat in weather_data.keys() 
+                       if not feat in independent_feats]
+    for feat in redundant_feats: weather_data.pop(feat)
+
     weather_data['precip_type'] = precip_type(weather_data['precip_type'])
 
     date_data = {
@@ -28,7 +36,7 @@ def predict_demand(date: str, api_key: str, data_dir: str = 'data',
     df = pd.DataFrame(data_dict)
     if df.iloc[0, :].isna().any(): return None
 
-    preds, intervals = model(df, return_cis = True, alpha = alpha)
+    preds, intervals = model(df, return_intervals = True, alpha = alpha)
     return preds, intervals
 
 if __name__ == '__main__':

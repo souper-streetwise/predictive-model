@@ -74,6 +74,12 @@ def extract_past_weather_data(dates: list, fname: str = 'weather_data.tsv',
 
     path = get_path(data_dir) / fname
     weather_df = pd.read_csv(path, sep = '\t')
+
+    # Choose only the independent features
+    independent_feats = ['date', 'precip_intensity_avg', 'precip_type',
+        'wind_speed_avg', 'temp_avg', 'humidity']
+    weather_df = weather_df[independent_feats]
+
     dates = [date.strftime('%Y-%m-%d') for date in dates]
     return weather_df[weather_df['date'].isin(dates)]
 
