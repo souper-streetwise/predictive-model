@@ -28,7 +28,6 @@ def predict_demand(date: str, api_key: str, data_dir: str = 'data',
 
     date_data = {
         'month': date.month,
-        'day_of_month': date.day,
         'day_of_week': date.isoweekday()
     }
 
