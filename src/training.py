@@ -19,7 +19,7 @@ def train_model(X: object, y: object,
     **kwargs) -> Dict[str, object]:
 
     from sklearn.model_selection import cross_val_score
-    from model import pExtraTreesRegressor
+    from soup.model import pExtraTreesRegressor
     from utils import get_path
 
     # Round hyperparameters

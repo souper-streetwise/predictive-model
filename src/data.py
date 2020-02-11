@@ -1,8 +1,10 @@
+import pandas as pd
+import numpy as np
+
 def get_data(fname: str = 'dataset', data_dir: str = 'data', 
     include_date: bool = False, include_month: bool = True,
     include_day_of_week: bool = True, include_day_of_month: bool = True,
     **kwargs):
-    import pandas as pd
     from utils import get_path, precip_type, month, day_of_week
 
     df = pd.read_csv(get_path(data_dir) / f'{fname}.tsv', sep = '\t', 
@@ -29,7 +31,6 @@ def get_data(fname: str = 'dataset', data_dir: str = 'data',
 def build_data(api_key: str, raw_fname: str = 'initial_data_no_duplicates.csv',
     out_fname: str = 'dataset', data_dir: str = 'data',
     weather_fname: str = 'weather_data.tsv'):
-    import pandas as pd
     from datetime import datetime
     from utils import get_path
 
@@ -58,18 +59,15 @@ def build_data(api_key: str, raw_fname: str = 'initial_data_no_duplicates.csv',
     return df
 
 def extract_date_data(dates: list):
-    import pandas as pd
     from utils import day_of_week, month
     date_data = {
         'month': [month(date.month) for date in dates],
-        'day_of_month': [date.day for date in dates],
         'day_of_week': [day_of_week(date.isoweekday()) for date in dates],
     }
     return pd.DataFrame(date_data)
 
 def extract_past_weather_data(dates: list, fname: str = 'weather_data.tsv', 
     data_dir: str = 'data'):
-    import pandas as pd
     from utils import get_path
 
     path = get_path(data_dir) / fname
@@ -85,7 +83,6 @@ def extract_past_weather_data(dates: list, fname: str = 'weather_data.tsv',
 
 def update_past_weather_data(api_key: str, fname: str = 'weather_data.tsv', 
     data_dir: str = 'data'):
-    import pandas as pd
     from datetime import datetime, timedelta
     from tqdm.auto import tqdm
     from utils import get_path, get_dates
@@ -137,7 +134,6 @@ def get_bristol_weather(date: str, api_key: str):
     '''
     import requests
     import json
-    import numpy as np
     from datetime import datetime
 
     # Convert datetime object to date string of the form YYYY-MM-DD
