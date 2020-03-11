@@ -92,7 +92,7 @@ def get_best_params(X: object, y: object,
     from skopt.space import Real, Categorical, Integer
     import warnings
     from datetime import datetime
-    from model import pExtraTreesRegressor
+    from soup.model import pExtraTreesRegressor
     from utils import get_path, TQDM
 
     hyperparams = {
