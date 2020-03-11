@@ -13,7 +13,7 @@ class pExtraTreesRegressor(ExtraTreesRegressor):
 
     def __init__(self,
         n_estimators: int = 5000,
-        criterion: str = 'mse',
+        criterion: str = 'mae',
         max_depth: Union[int, None] = None,
         min_samples_split: Union[int, float, None] = 2,
         min_samples_leaf: Union[int, float] = 1,
@@ -30,7 +30,8 @@ class pExtraTreesRegressor(ExtraTreesRegressor):
         ccp_alpha: float = 0.0,
         max_samples: Union[int, float, None] = None,
         ntrain: Union[int, None] = None,
-        inbag: Union[IntMatrix, None] = None): 
+        inbag: Union[IntMatrix, None] = None,
+        residuals: Union[FloatMatrix, None] = None):
 
         super().__init__(
             n_estimators = n_estimators,
@@ -54,11 +55,13 @@ class pExtraTreesRegressor(ExtraTreesRegressor):
 
         self.ntrain = ntrain
         self.inbag = inbag
+        self.residuals = residuals
 
-    def fit(self, X, *args, **kwargs):
-        preds = super().fit(X, *args, **kwargs)
+    def fit(self, X, y, *args, **kwargs):
+        preds = super().fit(X, y, *args, **kwargs)
         self.ntrain = X.shape[0]
         self.inbag = self.__calculate_inbag()
+        self.residuals = self.__calculate_residuals(X, y)
         return preds
 
     def __get_bootstrap_sample_size(self):
@@ -100,6 +103,19 @@ class pExtraTreesRegressor(ExtraTreesRegressor):
                 minlength = self.ntrain)
 
         return self.inbag
+
+    def __calculate_residuals(self, X, y):
+        residuals = []
+        for b, tree in enumerate(self.estimators_):
+            test_idxs = np.arange(self.ntrain)[self.inbag[:, b] == 0]
+            labels = y[test_idxs]
+            print('Labels done')
+            preds = tree.predict(X[test_idxs, :])
+            print('Preds done')
+            residuals.extend(labels - preds)
+            print('Residuals done')
+        self.residuals = np.percentile(residuals, np.arange(0, 100, 0.1))
+        return self.residuals
 
     def predict(self, X, return_intervals: bool = False, alpha: float = 0.99):
         ''' Predict demand from weather- and date features. '''
@@ -161,10 +177,14 @@ class pExtraTreesRegressor(ExtraTreesRegressor):
             t_factor = t.ppf((1 + alpha) / 2., self.ntrain - 1)
             radii = t_factor * std_errs.view()
 
+            # Get residual noise
+            lower_noise = np.percentile(self.residuals, 100 * (1 - alpha) / 2.)
+            upper_noise = np.percentile(self.residuals, 100 * (1 + alpha) / 2.)
+
             # Build the prediction intervals
             intervals = np.empty((ntest, 2), dtype = np.float32)
-            intervals[:, 0] = mean_preds - radii
-            intervals[:, 1] = mean_preds + radii
+            intervals[:, 0] = mean_preds - radii + lower_noise
+            intervals[:, 1] = mean_preds + radii + upper_noise
 
             mean_preds = np.round(mean_preds).astype(np.int32)
             intervals = np.round(intervals).astype(np.int32)

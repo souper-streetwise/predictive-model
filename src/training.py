@@ -1,7 +1,7 @@
 from typing import Union, Dict
 
 def train_model(X: object, y: object,
-    n_estimators: int = 5000,
+    n_estimators: int = 10000,
     max_depth: Union[int, None] = None,
     min_samples_split: Union[int, float] = 2,
     min_samples_leaf: Union[int, float] = 1,
@@ -15,7 +15,7 @@ def train_model(X: object, y: object,
     workers: int = -1,
     data_dir: str = 'data',
     model_name: str = 'soup_model',
-    criterion: str = 'mse',
+    criterion: str = 'mae',
     **kwargs) -> Dict[str, object]:
 
     from sklearn.model_selection import cross_val_score
@@ -96,9 +96,9 @@ def get_best_params(X: object, y: object,
     from utils import get_path, TQDM
 
     hyperparams = {
-        'n_estimators': Integer(5000, 20000),
+        'n_estimators': Integer(10000, 20000),
         'max_depth': Integer(2, 10000),
-        'min_samples_split': Real(eps, 1., prior = 'uniform'),
+        'min_samples_split': Integer(2, 100),
         'min_samples_leaf': Real(eps, 0.5, prior = 'uniform'),
         'min_weight_fraction_leaf': Real(0., 0.5, prior = 'uniform'),
         'max_features': Categorical(['auto', 'sqrt', 'log2']),
@@ -156,7 +156,7 @@ if __name__ == '__main__':
     parser.add_argument('--include_day_of_month', type = boolean, 
         default = True)
     parser.add_argument('--optimise', type = boolean, default = True)
-    parser.add_argument('--n_estimators', type = int, default = 5000)
+    parser.add_argument('--n_estimators', type = int, default = 10000)
     parser.add_argument('--max_depth', type = int, default = None)
     parser.add_argument('--min_samples_split', type = int_float, default = 2)
     parser.add_argument('--min_samples_leaf', type = int_float, default = 1)

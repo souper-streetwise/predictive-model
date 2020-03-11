@@ -23,6 +23,10 @@ def get_data(fname: str = 'dataset', data_dir: str = 'data',
     if 'day_of_week' not in droppers:
         df['day_of_week'] = df['day_of_week'].map(day_of_week)
 
+    # Take the mean of values on days with multiple entries
+    if include_date:
+        df = df.groupby('date', as_index = False).mean()
+
     X = df[[col for col in df.columns if col != 'total']].copy()
     y = df['total']
 
