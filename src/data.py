@@ -41,7 +41,7 @@ def build_data(api_key: str, raw_fname: str = 'initial_data_no_duplicates.csv',
         header = 0
     )
 
-    raw_df['date'] = [datetime.strptime(date, '%m/%d/%Y')
+    raw_df['date'] = [datetime.strptime(date, '%d/%m/%y')
                       for date in raw_df['date']] 
 
     raw_df['total'] = raw_df['locA'] + raw_df['locB']
@@ -197,5 +197,5 @@ if __name__ == '__main__':
     with open(get_path('darksky_key.txt'), 'r') as file_in:
         KEY = file_in.read().rstrip()
 
-    build_data(api_key = KEY)
+    build_data(api_key = KEY, raw_fname = 'initial_data_march2020_update_no_duplicates.csv')
     print(get_data())
