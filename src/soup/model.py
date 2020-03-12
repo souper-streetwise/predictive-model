@@ -2,6 +2,7 @@ from sklearn.ensemble import ExtraTreesRegressor
 from scipy.stats import t
 from typing import Union, Sequence
 import numpy as np
+import pandas as pd
 
 IntVector = Sequence[int]
 FloatVector = Sequence[float]
@@ -12,7 +13,7 @@ class pExtraTreesRegressor(ExtraTreesRegressor):
     ''' ExtraTreesRegressor with confidence intervals. '''
 
     def __init__(self,
-        n_estimators: int = 5000,
+        n_estimators: int = 10000,
         criterion: str = 'mae',
         max_depth: Union[int, None] = None,
         min_samples_split: Union[int, float, None] = 2,
@@ -105,16 +106,41 @@ class pExtraTreesRegressor(ExtraTreesRegressor):
         return self.inbag
 
     def __calculate_residuals(self, X, y):
-        residuals = []
+
+        # Convert to numpy arrays
+        if isinstance(X, pd.DataFrame): X = X.values
+        if isinstance(y, pd.Series): y = y.values
+
+        # Estimate testing residuals on out-of-bag predictions
+        test_residuals = np.zeros((self.ntrain, self.n_estimators))
         for b, tree in enumerate(self.estimators_):
-            test_idxs = np.arange(self.ntrain)[self.inbag[:, b] == 0]
-            labels = y[test_idxs]
-            print('Labels done')
-            preds = tree.predict(X[test_idxs, :])
-            print('Preds done')
-            residuals.extend(labels - preds)
-            print('Residuals done')
-        self.residuals = np.percentile(residuals, np.arange(0, 100, 0.1))
+            idxs = np.arange(self.ntrain)[self.inbag[:, b] == 0]
+            test_residuals[idxs, b] = y[idxs] - tree.predict(X[idxs, :])
+
+        # Compute the mean residual per observation
+        test_residuals = test_residuals.sum(1) / (test_residuals!=0).sum(1)
+
+        # Compute training residuals
+        preds = np.zeros((self.ntrain, self.n_estimators), dtype = np.float32)
+        for idx, tree in enumerate(self.estimators_):
+            preds[:, idx] = tree.predict(X)
+        mean_preds = preds.mean(1)
+        train_residuals = y - mean_preds
+
+        # Take percentiles of the training- and validation residuals to enable 
+        # comparisons between them
+        test_residuals = np.percentile(test_residuals, np.arange(0,100,0.1))
+        train_residuals = np.percentile(train_residuals, np.arange(0,100,0.1))
+
+        # Compute the .632+ bootstrap estimate
+        no_info_err = np.mean(np.abs(np.random.permutation(y) - \
+            np.random.permutation(mean_preds)))
+        generalisation = np.abs(test_residuals - train_residuals)
+        no_info_val = np.abs(no_info_err - train_residuals)
+        relative_overfitting_rate = np.mean(generalisation / no_info_val)
+        weight = .632 / (1 - .368 * relative_overfitting_rate)
+        self.residuals = (1-weight) * train_residuals + weight * test_residuals
+
         return self.residuals
 
     def predict(self, X, return_intervals: bool = False, alpha: float = 0.99):
@@ -178,13 +204,17 @@ class pExtraTreesRegressor(ExtraTreesRegressor):
             radii = t_factor * std_errs.view()
 
             # Get residual noise
-            lower_noise = np.percentile(self.residuals, 100 * (1 - alpha) / 2.)
-            upper_noise = np.percentile(self.residuals, 100 * (1 + alpha) / 2.)
+            lower_noise = np.quantile(self.residuals, (1 - alpha) / 2.)
+            upper_noise = np.quantile(self.residuals, (1 + alpha) / 2.)
 
             # Build the prediction intervals
             intervals = np.empty((ntest, 2), dtype = np.float32)
             intervals[:, 0] = mean_preds - radii + lower_noise
             intervals[:, 1] = mean_preds + radii + upper_noise
+
+            # Enforce lower bound to be positive
+            intervals[:, 0] = np.maximum(intervals[:, 0],
+                np.zeros(intervals.shape[0]))
 
             mean_preds = np.round(mean_preds).astype(np.int32)
             intervals = np.round(intervals).astype(np.int32)

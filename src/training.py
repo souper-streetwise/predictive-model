@@ -25,7 +25,7 @@ def train_model(X: object, y: object,
     # Round hyperparameters
     min_weight_fraction_leaf = round(min_weight_fraction_leaf, 2)
     min_impurity_decrease = round(min_impurity_decrease, 2)
-    if isinstance(max_depth, int) and max_depth > 1000: 
+    if isinstance(max_depth, int) and max_depth > 5000: 
         max_depth = None
     if isinstance(min_samples_split, float):
         min_samples_split = round(min_samples_split, 2)
@@ -36,7 +36,7 @@ def train_model(X: object, y: object,
     if isinstance(max_features, float):
         max_features = round(max_features, 2)
         if max_features == 0.0: max_features = 1
-    if isinstance(max_leaf_nodes, int) and max_leaf_nodes > 1000:
+    if isinstance(max_leaf_nodes, int) and max_leaf_nodes > 5000:
         max_leaf_nodes = None
     if isinstance(max_samples, float):
         max_samples = round(max_samples, 2)
