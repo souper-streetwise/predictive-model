@@ -1,30 +1,28 @@
 from typing import Union, Dict
 
 def train_model(X: object, y: object,
-    n_estimators: int = 10000,
+    n_estimators: int = 1000,
     max_depth: Union[int, None] = None,
     min_samples_split: Union[int, float] = 2,
-    min_samples_leaf: Union[int, float] = 1,
+    min_samples_leaf: Union[int, float] = 3,
     min_weight_fraction_leaf: float = 0.,
     max_features: Union[int, float, str, None] = 'auto',
     max_leaf_nodes: Union[int, None] = None,
-    min_impurity_decrease: float = 0.,
-    max_samples: Union[int, float, None] = None,
     save_model: bool = True,
     cv: int = 10,
     workers: int = -1,
     data_dir: str = 'data',
     model_name: str = 'soup_model',
     criterion: str = 'mae',
+    bootstrap: bool = True,
     **kwargs) -> Dict[str, object]:
 
     from sklearn.model_selection import cross_val_score
-    from soup.model import pExtraTreesRegressor
+    from skgarden import ExtraTreesQuantileRegressor
     from utils import get_path
 
     # Round hyperparameters
     min_weight_fraction_leaf = round(min_weight_fraction_leaf, 2)
-    min_impurity_decrease = round(min_impurity_decrease, 2)
     if isinstance(max_depth, int) and max_depth > 5000: 
         max_depth = None
     if isinstance(min_samples_split, float):
@@ -32,15 +30,12 @@ def train_model(X: object, y: object,
         if min_samples_split == 0.0: min_samples_split = 2
     if isinstance(min_samples_leaf, float):
         min_samples_leaf = round(min_samples_leaf, 2)
-        if min_samples_leaf == 0.0: min_samples_leaf = 1
+        if min_samples_leaf == 0.0: min_samples_leaf = 3
     if isinstance(max_features, float):
         max_features = round(max_features, 2)
         if max_features == 0.0: max_features = 1
     if isinstance(max_leaf_nodes, int) and max_leaf_nodes > 5000:
         max_leaf_nodes = None
-    if isinstance(max_samples, float):
-        max_samples = round(max_samples, 2)
-        if max_samples == 1.0: max_samples = None
 
     model = pExtraTreesRegressor(
         n_estimators = n_estimators,
@@ -50,9 +45,8 @@ def train_model(X: object, y: object,
         min_weight_fraction_leaf = min_weight_fraction_leaf,
         max_features = max_features,
         max_leaf_nodes = max_leaf_nodes,
-        min_impurity_decrease = min_impurity_decrease,
-        max_samples = max_samples,
         criterion = criterion,
+        bootstrap = bootstrap,
         n_jobs = workers,
     )
 
@@ -90,25 +84,24 @@ def get_best_params(X: object, y: object,
 
     from skopt import BayesSearchCV
     from skopt.space import Real, Categorical, Integer
+    from skgarden import ExtraTreesQuantileRegressor
     import warnings
     from datetime import datetime
-    from soup.model import pExtraTreesRegressor
     from utils import get_path, TQDM
 
     hyperparams = {
-        'n_estimators': Integer(10000, 20000),
+        'n_estimators': Integer(100, 5000),
         'max_depth': Integer(2, 10000),
         'min_samples_split': Integer(2, 100),
-        'min_samples_leaf': Real(eps, 0.5, prior = 'uniform'),
+        'min_samples_leaf': Integer(3, 100),
         'min_weight_fraction_leaf': Real(0., 0.5, prior = 'uniform'),
         'max_features': Categorical(['auto', 'sqrt', 'log2']),
         'max_leaf_nodes': Integer(10, 10000),
-        'min_impurity_decrease': Real(0., 1., prior = 'uniform'),
-        'max_samples': Real(0.1, 1. - eps, prior = 'uniform'),
-        'criterion': Categorical(['mse', 'mae'])
+        'criterion': Categorical(['mse', 'mae']),
+        'bootstrap': Categorical([True, False])
     }
     
-    estimator = pExtraTreesRegressor(n_jobs = workers)
+    estimator = ExtraTreesQuantileRegressor(n_jobs = workers)
     search = BayesSearchCV(
         estimator = estimator, 
         search_spaces = hyperparams, 
@@ -164,9 +157,7 @@ if __name__ == '__main__':
         default = 0.)
     parser.add_argument('--max_features', type = str, default = 'auto')
     parser.add_argument('--max_leaf_nodes', type = int, default = None)
-    parser.add_argument('--min_impurity_decrease', type = float, 
-        default = 0.)
-    parser.add_argument('--max_samples', type = int_float, default = None)
+    parser.add_argument('--bootstrap', type = boolean, default = True)
     args = vars(parser.parse_args())
 
     X, y = get_data(**args)
