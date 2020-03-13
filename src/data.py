@@ -65,10 +65,12 @@ def build_data(api_key: str, raw_fname: str = 'initial_data_no_duplicates.csv',
 def extract_date_data(dates: list):
     from utils import day_of_week, month
     date_data = {
+        'year': [date.year for date in dates],
         'month': [month(date.month) for date in dates],
         'day_of_week': [day_of_week(date.isoweekday()) for date in dates],
+        'day_of_month': [date.day for date in dates],
     }
-    return pd.DataFrame(date_data)
+    return pd.DataFrame(date_data, dtype = int)
 
 def extract_past_weather_data(dates: list, fname: str = 'weather_data.tsv', 
     data_dir: str = 'data'):
@@ -198,8 +200,11 @@ def get_bristol_weather(date: str, api_key: str):
 
 if __name__ == '__main__':
     from utils import get_path
+
     with open(get_path('darksky_key.txt'), 'r') as file_in:
         KEY = file_in.read().rstrip()
 
-    build_data(api_key = KEY, raw_fname = 'initial_data_march2020_update_no_duplicates.csv')
-    print(get_data())
+    build_data(
+        api_key = KEY, 
+        raw_fname = 'initial_data_march2020_update_no_duplicates.csv'
+    )

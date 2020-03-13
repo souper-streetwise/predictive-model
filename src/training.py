@@ -13,7 +13,7 @@ def train_model(X: object, y: object,
     workers: int = -1,
     data_dir: str = 'data',
     model_name: str = 'soup_model',
-    criterion: str = 'mae',
+    criterion: str = 'mse',
     bootstrap: bool = True,
     **kwargs) -> Dict[str, object]:
 
@@ -37,7 +37,7 @@ def train_model(X: object, y: object,
     if isinstance(max_leaf_nodes, int) and max_leaf_nodes > 5000:
         max_leaf_nodes = None
 
-    model = pExtraTreesRegressor(
+    model = ExtraTreesQuantileRegressor(
         n_estimators = n_estimators,
         max_depth = max_depth,
         min_samples_split = min_samples_split,
@@ -148,8 +148,8 @@ if __name__ == '__main__':
         default = True)
     parser.add_argument('--include_day_of_month', type = boolean, 
         default = True)
-    parser.add_argument('--optimise', type = boolean, default = True)
-    parser.add_argument('--n_estimators', type = int, default = 10000)
+    parser.add_argument('--optimise', type = boolean, default = False)
+    parser.add_argument('--n_estimators', type = int, default = 1000)
     parser.add_argument('--max_depth', type = int, default = None)
     parser.add_argument('--min_samples_split', type = int_float, default = 2)
     parser.add_argument('--min_samples_leaf', type = int_float, default = 1)
@@ -158,6 +158,7 @@ if __name__ == '__main__':
     parser.add_argument('--max_features', type = str, default = 'auto')
     parser.add_argument('--max_leaf_nodes', type = int, default = None)
     parser.add_argument('--bootstrap', type = boolean, default = True)
+    parser.add_argument('--criterion', type = str, default = 'mse')
     args = vars(parser.parse_args())
 
     X, y = get_data(**args)
