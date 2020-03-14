@@ -8,13 +8,13 @@ def train_model(X: object, y: object,
     min_weight_fraction_leaf: float = 0.,
     max_features: Union[int, float, str, None] = 'auto',
     max_leaf_nodes: Union[int, None] = None,
+    criterion: str = 'mse',
+    bootstrap: bool = True,
     save_model: bool = True,
     cv: int = 10,
     workers: int = -1,
     data_dir: str = 'data',
     model_name: str = 'soup_model',
-    criterion: str = 'mse',
-    bootstrap: bool = True,
     **kwargs) -> Dict[str, object]:
 
     from sklearn.model_selection import cross_val_score

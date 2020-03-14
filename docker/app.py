@@ -1,36 +1,26 @@
 from flask import Flask, request, render_template
+from datetime import datetime, timedelta
 from pathlib import Path
+import json
 import sys
+from src.inference import predict_demand
 
-sys.path.append(Path.cwd())
+app = Flask(__name__, template_folder = Path('templates'))
 
-app = Flask(__name__, template_folder = Path('static'))
-
-@app.route('/')
-def index():
-    return ''
-
-@app.route('/soup', methods = ['POST', 'GET'])
+@app.route('/', methods = ['POST', 'GET'])
 def soup():
-    from datetime import datetime, timedelta
-    from soup.inference import predict_demand
-    import json
-
-    # Add soup_model to PATH to ensure that model can be unpickled properly
-    sys.path.append(Path.cwd() / 'soup' / 'soup_model')
-
     data_dict = request.form if request.method == 'POST' else request.args
     if not data_dict:
-        return render_template('soup.html')
+        return render_template('index.html')
 
     if data_dict.get('api_key') is None:
-        with open(Path('soup') / 'darksky_key.txt', 'r') as f:
+        with open('darksky_key.txt', 'r') as f:
             api_key = f.read().rstrip()
     else:
         api_key = data_dict['api_key']
 
     data_dir = data_dict.get('data_dir', '.data')
-    percentile = data_dict.get('percentile', 90)
+    alpha = data_dict.get('alpha', .95)
     if data_dict.get('date') is None:
         data_dict['date'] = datetime.now() + timedelta(days = 1)
 
@@ -41,7 +31,8 @@ def soup():
         date = data_dict['date'],
         api_key = api_key,
         data_dir = data_dir,
-        percentile = percentile
+        alpha = alpha,
+        model_name = 'soup_model'
     )
 
     if prediction is None:
@@ -49,7 +40,7 @@ def soup():
         result = {'date': data_dict['date'], 'error': error}
 
     else:
-        if percentile is None:
+        if alpha is None:
             result = {'prediction': prediction}
         else:
             lower = prediction[0]
@@ -62,7 +53,7 @@ def soup():
             }
 
     if request.method == 'POST':
-        return render_template('soup.html', **result, **data_dict)
+        return render_template('index.html', **result, **data_dict)
     else:
         return json.dumps(result)
 

@@ -1,3 +1,8 @@
+from pathlib import Path
+from datetime import timedelta
+import pickle
+from tqdm.auto import tqdm
+
 def boolean(input):
     ''' Convert strings 'true'/'false' into boolean True/False.
     INPUT
@@ -13,14 +18,12 @@ def boolean(input):
     if isinstance(input, str) and input.lower() == 'false': return False
 
 def get_path(folder: str):
-    from pathlib import Path
     if Path.cwd().name == 'src':
         return Path.cwd().parent / folder
     else:
         return Path.cwd() / folder
 
 def date_iter(start_date, end_date) -> iter:
-    from datetime import timedelta
     curr_date = start_date
     while curr_date <= end_date:
         yield curr_date
@@ -50,7 +53,6 @@ def month(inputs):
 
 def load_model_data(model_name: str = 'soup_model', data_dir: str = 'data'):
     ''' Load a machine learning model. '''
-    import pickle
     model_path = get_path(data_dir) / model_name
     if model_path.is_file():
         with open(model_path, 'rb') as f:
@@ -62,7 +64,6 @@ class TQDM(object):
     ''' TQDM class to be used in Bayesian optimisation with skopt. '''
 
     def __init__(self, update_amount: int = 1, **kwargs):
-        from tqdm.auto import tqdm
         self.bar = tqdm(**kwargs)
         self.update_amount = update_amount
 
