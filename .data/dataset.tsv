@@ -14,7 +14,7 @@ date	locA	locB	total	year	month	day_of_week	day_of_month	precip_intensity_avg	pr
 2018-02-26	30	10	40	2018	february	monday	26	0.0	no_precip	8.08	-8.43	0.62
 2018-03-01	40	10	50	2018	march	thursday	1	0.0	no_precip	11.05	-11.03	0.56
 2018-03-02	20	10	30	2018	march	friday	2	0.0	no_precip	9.36	-9.56	0.69
-2018-03-03	30	15	45	2018	march	saturday	3	0.013999999999999999	snow	5.08	-3.55	0.86
+2018-03-03	30	15	45	2018	march	saturday	3	0.014	snow	5.08	-3.55	0.86
 2018-03-04	35	15	50	2018	march	sunday	4	0.0891	rain	4.53	1.05	0.88
 2018-03-05	35	15	50	2018	march	monday	5	0.0	no_precip	4.76	2.27	0.87
 2018-03-05	30	12	42	2018	march	monday	5	0.0	no_precip	4.76	2.27	0.87
@@ -143,8 +143,8 @@ date	locA	locB	total	year	month	day_of_week	day_of_month	precip_intensity_avg	pr
 2018-10-21	30	15	45	2018	october	sunday	21	0.0	rain	1.82	11.08	0.79
 2018-10-31	20	8	28	2018	october	wednesday	31	0.152	rain	3.99	5.54	0.82
 2018-11-02	25	10	35	2018	november	friday	2	0.001	rain	4.72	6.71	0.69
-2018-11-03	15	13	28	2018	november	saturday	3	0.27899999999999997	no_precip	3.32	2.73	0.79
-2018-11-03	40	20	60	2018	november	saturday	3	0.27899999999999997	no_precip	3.32	2.73	0.79
+2018-11-03	15	13	28	2018	november	saturday	3	0.279	no_precip	3.32	2.73	0.79
+2018-11-03	40	20	60	2018	november	saturday	3	0.279	no_precip	3.32	2.73	0.79
 2018-11-04	22	8	30	2018	november	sunday	4	0.6165	rain	3.33	5.74	0.8
 2018-11-05	40	15	55	2018	november	monday	5	0.0621	no_precip	3.15	8.49	0.85
 2018-11-10	25	15	40	2018	november	saturday	10	0.3969	rain	9.53	12.18	0.88
@@ -266,7 +266,7 @@ date	locA	locB	total	year	month	day_of_week	day_of_month	precip_intensity_avg	pr
 2019-10-11	35	15	50	2019	october	friday	11	0.1672	rain	11.61	15.38	0.87
 2019-10-12	22	10	32	2019	october	saturday	12	0.2561	rain	2.77	12.83	0.95
 2019-10-16	35	25	60	2019	october	wednesday	16	0.5036	rain	6.54	13.84	0.92
-2019-10-19	18	13	31	2019	october	saturday	19	0.32899999999999996	rain	7.31	12.22	0.88
+2019-10-19	18	13	31	2019	october	saturday	19	0.329	rain	7.31	12.22	0.88
 2019-10-31	23	16	39	2019	october	thursday	31	0.0004	rain	6.1	4.08	0.82
 2019-11-04	25	15	40	2019	november	monday	4	0.2924	rain	8.54	11.7	0.77
 2019-11-08	20	8	28	2019	november	friday	8	0.1299	rain	7.1	5.39	0.75
@@ -275,7 +275,7 @@ date	locA	locB	total	year	month	day_of_week	day_of_month	precip_intensity_avg	pr
 2019-11-15	35	14	49	2019	november	friday	15	0.0468	rain	8.67	2.83	0.75
 2019-11-16	18	14	32	2019	november	saturday	16	0.0113	rain	6.65	2.22	0.76
 2019-11-27	27	19	46	2019	november	wednesday	27	0.8451	rain	11.76	10.77	0.85
-2019-11-28	25	15	40	2019	november	thursday	28	0.39299999999999996	rain	11.55	8.48	0.81
+2019-11-28	25	15	40	2019	november	thursday	28	0.393	rain	11.55	8.48	0.81
 2019-11-30	18	13	31	2019	november	saturday	30	0.0111	rain	4.86	4.22	0.68
 2019-12-01	60	20	80	2019	december	sunday	1	0.0301	rain	9.63	1.98	0.7
 2019-12-01	15	15	30	2019	december	sunday	1	0.0301	rain	9.63	1.98	0.7
@@ -297,7 +297,7 @@ date	locA	locB	total	year	month	day_of_week	day_of_month	precip_intensity_avg	pr
 2020-01-06	30	21	51	2020	january	monday	6	0.0626	rain	9.9	2.39	0.77
 2020-01-09	25	15	40	2020	january	thursday	9	0.1916	rain	10.85	9.29	0.88
 2020-01-10	25	15	40	2020	january	friday	10	0.0461	rain	8.12	3.77	0.78
-2020-01-11	27	25	52	2020	january	saturday	11	0.013999999999999999	rain	11.57	2.25	0.78
+2020-01-11	27	25	52	2020	january	saturday	11	0.014	rain	11.57	2.25	0.78
 2020-01-19	15	12	27	2020	january	sunday	19	0.0814	rain	9.38	3.31	0.73
 2020-01-22	30	18	48	2020	january	wednesday	22	0.0025	rain	2.04	4.94	0.82
 2020-01-23	25	15	40	2020	january	thursday	23	0.0057	rain	3.15	4.18	0.85

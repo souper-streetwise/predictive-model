@@ -51,7 +51,7 @@ def month(inputs):
     is_idx = isinstance(inputs, int)
     return months[inputs - 1] if is_idx else months.index(inputs) + 1
 
-def load_model_data(model_name: str = 'soup_model', data_dir: str = 'data'):
+def load_model_data(model_name: str = 'soup_model', data_dir: str = '.data'):
     ''' Load a machine learning model. '''
     model_path = get_path(data_dir) / model_name
     if model_path.is_file():

@@ -1,11 +1,17 @@
 import pandas as pd
 import numpy as np
+import datetime as dt
+from tqdm.auto import tqdm
+import requests
+import json
+from functools import partial
+
+from utils import get_path, precip_type, month, day_of_week, get_dates
 
 def get_data(fname: str = 'dataset', data_dir: str = 'data', 
     include_date: bool = False, include_month: bool = True,
     include_day_of_week: bool = True, include_day_of_month: bool = True,
     **kwargs):
-    from utils import get_path, precip_type, month, day_of_week
 
     df = pd.read_csv(get_path(data_dir) / f'{fname}.tsv', sep = '\t', 
         header = 0).drop(columns = ['locA', 'locB'])
@@ -35,35 +41,51 @@ def get_data(fname: str = 'dataset', data_dir: str = 'data',
 def build_data(api_key: str, raw_fname: str = 'initial_data_no_duplicates.csv',
     out_fname: str = 'dataset', data_dir: str = 'data',
     weather_fname: str = 'weather_data.tsv'):
-    from datetime import datetime
-    from utils import get_path
 
-    col_names = ['date', 'locA', 'locB']
+    # Load dataframe
     raw_df = pd.read_csv(
         get_path(data_dir) / raw_fname, 
-        names = col_names, 
+        names = ['date', 'locA', 'locB'], 
         header = 0
     )
 
-    raw_df['date'] = [datetime.strptime(date, '%d/%m/%y')
+    # Add date column and get date information
+    raw_df['date'] = [dt.datetime.strptime(date, '%d/%m/%y')
                       for date in raw_df['date']] 
-
-    raw_df['total'] = raw_df['locA'] + raw_df['locB']
     date_df = extract_date_data(raw_df['date'])
 
-    update_past_weather_data(api_key = api_key)
-    weather_df = extract_past_weather_data(raw_df['date'], data_dir = data_dir)
-    weather_df['date'] = [datetime.strptime(date, '%Y-%m-%d')
-                          for date in weather_df['date']]
+    # Compute the total demand
+    raw_df['total'] = raw_df['locA'] + raw_df['locB']
+    
+    def get_past_demand(date, nweeks: int = 1):
+        ''' Get all dates from `nweeks` before `date` and up to `date`. '''
+        if isinstance(date, str):
+            date = dt.datetime.strptime(date, '%Y-%m-%d')
+        past_dates = [date - dt.timedelta(days = i) 
+            for i in range(1, 7 * nweeks + 1)]
+        return raw_df.loc[raw_df.date.isin(past_dates), 'total'].mean()
 
+    # To include past demand information
+    #raw_df['past_total'] = raw_df.date.map(
+    #    lambda date: get_past_demand(date, nweeks = 2)
+    #)
+
+    # Get weather data 
+    update_past_weather_data(api_key = api_key)
+    weather_df = extract_past_weather_data(raw_df.date, data_dir = data_dir)
+    weather_df['date'] = [dt.datetime.strptime(date, '%Y-%m-%d')
+                          for date in weather_df.date]
+
+    # Add the date- and weather data to the loaded dataframe
     out_path = get_path(data_dir) / f'{out_fname}.tsv'
     df = pd.concat([raw_df, date_df], axis = 1)
     df = df.merge(weather_df, on = 'date')
+
+    # Save the resulting dataframe to disk and return it
     df.to_csv(out_path, sep = '\t', index = False)
     return df
 
 def extract_date_data(dates: list):
-    from utils import day_of_week, month
     date_data = {
         'year': [date.year for date in dates],
         'month': [month(date.month) for date in dates],
@@ -74,7 +96,6 @@ def extract_date_data(dates: list):
 
 def extract_past_weather_data(dates: list, fname: str = 'weather_data.tsv', 
     data_dir: str = 'data'):
-    from utils import get_path
 
     path = get_path(data_dir) / fname
     weather_df = pd.read_csv(path, sep = '\t')
@@ -89,18 +110,15 @@ def extract_past_weather_data(dates: list, fname: str = 'weather_data.tsv',
 
 def update_past_weather_data(api_key: str, fname: str = 'weather_data.tsv', 
     data_dir: str = 'data'):
-    from datetime import datetime, timedelta
-    from tqdm.auto import tqdm
-    from utils import get_path, get_dates
 
     path = get_path(data_dir) / fname
     weather_df = pd.read_csv(path, sep = '\t')
 
     last_row = weather_df.tail(1).reset_index()
-    last_date = datetime.strptime(last_row['date'][0], '%Y-%m-%d')
+    last_date = dt.datetime.strptime(last_row['date'][0], '%Y-%m-%d')
 
-    if last_date.date() != datetime.today().date():
-        dates = get_dates(last_date + timedelta(days = 1), datetime.today())
+    if last_date.date() != dt.datetime.today().date():
+        dates = get_dates(last_date+dt.timedelta(days=1), dt.datetime.today())
         rows = []
         for date in tqdm(dates, desc = 'Fetching weather data'):
             row = {'date': date.strftime('%Y-%m-%d')}
@@ -138,12 +156,9 @@ def get_bristol_weather(date: str, api_key: str):
             temp_night: The feel-like temperature at midnight, in celsius
             humidity: The relative humidity between 0 and 1, inclusive
     '''
-    import requests
-    import json
-    from datetime import datetime
 
     # Convert datetime object to date string of the form YYYY-MM-DD
-    if isinstance(date, datetime):
+    if isinstance(date, dt.datetime):
         date = date.strftime('%Y-%m-%d')
 
     # Bristol's latitude and longitude coordinates
@@ -199,8 +214,6 @@ def get_bristol_weather(date: str, api_key: str):
 
 
 if __name__ == '__main__':
-    from utils import get_path
-
     with open(get_path('darksky_key.txt'), 'r') as file_in:
         KEY = file_in.read().rstrip()
 
