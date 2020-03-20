@@ -41,6 +41,7 @@ def predict():
             upper = prediction[2]
             prediction = prediction[1]
             result = {
+                'date': date,
                 'prediction': int(prediction),
                 'lower': int(lower),
                 'upper': int(upper)
