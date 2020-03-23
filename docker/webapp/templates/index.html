@@ -1,0 +1,20 @@
+<html>
+  <body>
+    <h1>Look at this cool web app</h1>
+
+    <p>
+      Try to make a GET request to port 8080 with <tt>table</tt> set to either <tt>weather</tt>, <tt>counts</tt> or <tt>predictions</tt>. I dare you.
+    </p>
+
+    <p>
+      Here's a little teaser. Guess which table these come from.
+    </p>
+
+    {% if data %}
+      {% for entry in data %}
+        <p>{{ entry }}</p>
+      {% endfor %}
+    {% endif %}
+
+  </body>
+</html>

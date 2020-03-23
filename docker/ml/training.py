@@ -1,11 +1,8 @@
 from typing import Union, Dict
 from sklearn.model_selection import cross_val_score
 from skgarden import ExtraTreesQuantileRegressor
-import warnings
-from datetime import datetime
 import pickle
-import pandas as pd
-from .utils import get_path, TQDM
+from .utils import get_path
 
 def train_model(X: object, y: object,
     n_estimators: int = 1000,

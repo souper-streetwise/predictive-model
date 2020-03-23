@@ -1,7 +1,6 @@
 from pathlib import Path
 from datetime import timedelta
 import pickle
-from tqdm.auto import tqdm
 
 def boolean(input):
     ''' Convert strings 'true'/'false' into boolean True/False.
@@ -34,8 +33,11 @@ def get_dates(start_date, end_date) -> list:
 
 def precip_type(inputs):
     precips = ['no_precip', 'rain', 'snow', 'sleet']
-    is_idx = isinstance(inputs, int)
-    return precips[inputs] if is_idx else precips.index(inputs)
+    if isinstance(inputs, int):
+        return precips[inputs]
+    else:
+        if inputs is None: inputs = 'no_precip'
+        return precips.index(inputs)
 
 def day_of_week(inputs):
     ''' Convert between numbers 1-7 and days of the week. '''
@@ -64,6 +66,7 @@ class TQDM(object):
     ''' TQDM class to be used in Bayesian optimisation with skopt. '''
 
     def __init__(self, update_amount: int = 1, **kwargs):
+        from tqdm.auto import tqdm
         self.bar = tqdm(**kwargs)
         self.update_amount = update_amount
 

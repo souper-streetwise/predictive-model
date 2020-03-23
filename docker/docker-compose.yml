@@ -2,13 +2,28 @@ version: '3'
 
 services:
 
-  api:
-    container_name: flask_api
+  dbapi:
+    container_name: dbapi
     restart: always
-    build: ./api
-    volumes: ['./api:/api']
+    build: ./dbapi
+    volumes: 
+      - ./dbapi:/dbapi
+      - ./soup.db:/soup.db
     networks:
-      - apinetwork
+      - soupnetwork
+    expose:
+      - "8080"
+    ports:
+      - "8080:8080"
+
+  webapp:
+    container_name: webapp
+    restart: always
+    build: ./webapp
+    volumes: 
+      - ./webapp:/webapp
+    networks:
+      - soupnetwork
     expose:
       - "5000"
     ports:
@@ -19,11 +34,11 @@ services:
     restart: always
     build: ./nginx
     networks:
-      - apinetwork
+      - soupnetwork
     expose:
-      - "8080"
+      - "80"
     ports:
-      - "80:8080"
+      - "80:80"
 
 networks:
-  apinetwork:
+  soupnetwork:

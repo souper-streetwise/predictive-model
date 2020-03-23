@@ -1,10 +1,9 @@
+from .utils import get_path, precip_type, month, day_of_week, get_dates
 import pandas as pd
 import numpy as np
 from datetime import datetime, timedelta
-from tqdm.auto import tqdm
 import requests
 import json
-from .utils import get_path, precip_type, month, day_of_week, get_dates
 
 def get_data(fname: str = 'dataset', data_dir: str = 'data', 
     include_date: bool = False, include_month: bool = True,
@@ -89,6 +88,7 @@ def extract_past_weather_data(dates: list, fname: str = 'weather_data.tsv',
 
 def update_past_weather_data(api_key: str, fname: str = 'weather_data.tsv', 
     data_dir: str = 'data'):
+    from tqdm.auto import tqdm
 
     path = get_path(data_dir) / fname
     weather_df = pd.read_csv(path, sep = '\t')
