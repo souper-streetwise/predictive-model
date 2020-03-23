@@ -8,7 +8,7 @@ from functools import partial
 
 from utils import get_path, precip_type, month, day_of_week, get_dates
 
-def get_data(fname: str = 'dataset', data_dir: str = 'data', 
+def get_data(fname: str = 'dataset', data_dir: str = '.data', 
     include_date: bool = False, include_month: bool = True,
     include_day_of_week: bool = True, include_day_of_month: bool = True,
     **kwargs):
@@ -38,43 +38,36 @@ def get_data(fname: str = 'dataset', data_dir: str = 'data',
 
     return X, y
 
-def build_data(api_key: str, raw_fname: str = 'initial_data_no_duplicates.csv',
-    out_fname: str = 'dataset', data_dir: str = 'data',
+def clean_initial_df(df: pd.DataFrame) -> pd.DataFrame:
+    
+    # Add total column
+    df['total'] = df.fst + df.snd
+    
+    # Change date format to YYYY-MM-DD
+    df['date'] = df.date.map(lambda txt: dt.datetime.strptime(txt, '%d/%m/%y'))
+    
+    # If there are multiple entries on the same date, take the mean
+    df = df.groupby('date', as_index = False).mean()
+    
+    # Sort by date
+    df.sort_values(by = 'date')
+
+    return df
+
+def build_data(api_key: str, 
+    raw_fname: str = 'initial_data_march2020_update.csv',
+    out_fname: str = 'dataset', data_dir: str = '.data',
     weather_fname: str = 'weather_data.tsv'):
 
     # Load dataframe
-    raw_df = pd.read_csv(
-        get_path(data_dir) / raw_fname, 
-        names = ['date', 'locA', 'locB'], 
-        header = 0
-    )
+    raw_df = pd.read_csv(get_path(data_dir) / raw_fname)
 
     # Add date column and get date information
-    raw_df['date'] = [dt.datetime.strptime(date, '%d/%m/%y')
-                      for date in raw_df['date']] 
     date_df = extract_date_data(raw_df['date'])
-
-    # Compute the total demand
-    raw_df['total'] = raw_df['locA'] + raw_df['locB']
-    
-    def get_past_demand(date, nweeks: int = 1):
-        ''' Get all dates from `nweeks` before `date` and up to `date`. '''
-        if isinstance(date, str):
-            date = dt.datetime.strptime(date, '%Y-%m-%d')
-        past_dates = [date - dt.timedelta(days = i) 
-            for i in range(1, 7 * nweeks + 1)]
-        return raw_df.loc[raw_df.date.isin(past_dates), 'total'].mean()
-
-    # To include past demand information
-    #raw_df['past_total'] = raw_df.date.map(
-    #    lambda date: get_past_demand(date, nweeks = 2)
-    #)
 
     # Get weather data 
     update_past_weather_data(api_key = api_key)
     weather_df = extract_past_weather_data(raw_df.date, data_dir = data_dir)
-    weather_df['date'] = [dt.datetime.strptime(date, '%Y-%m-%d')
-                          for date in weather_df.date]
 
     # Add the date- and weather data to the loaded dataframe
     out_path = get_path(data_dir) / f'{out_fname}.tsv'
@@ -95,7 +88,7 @@ def extract_date_data(dates: list):
     return pd.DataFrame(date_data, dtype = int)
 
 def extract_past_weather_data(dates: list, fname: str = 'weather_data.tsv', 
-    data_dir: str = 'data'):
+    data_dir: str = '.data'):
 
     path = get_path(data_dir) / fname
     weather_df = pd.read_csv(path, sep = '\t')
@@ -109,7 +102,7 @@ def extract_past_weather_data(dates: list, fname: str = 'weather_data.tsv',
     return weather_df[weather_df['date'].isin(dates)]
 
 def update_past_weather_data(api_key: str, fname: str = 'weather_data.tsv', 
-    data_dir: str = 'data'):
+    data_dir: str = '.data'):
 
     path = get_path(data_dir) / fname
     weather_df = pd.read_csv(path, sep = '\t')
