@@ -72,12 +72,12 @@ for date in week:
     prediction_dict['date'].append(date)
     prediction_dict['date_predicted'].append(today)
 
-    # Get weather data
+    # Get weather data from the Dark Sky API
     weather_dict['date'].append(date)
     weather_data = get_bristol_weather(date, api_key = api_key)
     weather_data['precip_type'] = precip_type(weather_data['precip_type'])
 
-    # Add weather data to data dict
+    # Add weather data to weather dictionary
     for key, val in weather_data.items():
         weather_dict[key].append(val)
 
@@ -100,9 +100,9 @@ X = tmp[['year', 'month', 'day_of_week', 'day_of_month',
 del tmp
 
 # Add predictions
-prediction_df['prediction'] = model.predict(X)
-prediction_df['lower'] = model.predict(X, 2.5)
-prediction_df['upper'] = model.predict(X, 97.5)
+prediction_df['prediction'] = np.around(model.predict(X)).astype(int)
+prediction_df['lower'] = np.around(model.predict(X, 2.5)).astype(int)
+prediction_df['upper'] = np.around(model.predict(X, 97.5)).astype(int)
 
 # Store prediction data into database
 json = {'table': 'predictions', 'data': prediction_df.to_dict('split')['data']}
