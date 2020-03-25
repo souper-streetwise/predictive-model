@@ -39,6 +39,9 @@ with sqlite3.connect('/soup.db') as db:
 
 @app.route('/', methods = ['GET', 'POST'])
 def data():
+
+    # If someone performs a GET request then return all data from
+    # the requested data, in a JSON format
     if request.method == 'GET':
         with sqlite3.connect('/soup.db') as db:
             cursor = db.cursor()
@@ -48,6 +51,8 @@ def data():
             cursor.close()
         return json.dumps(data)
 
+    # If someone performs a POST request then put all the data received
+    # into the specified table, overwriting previous data on the same date
     elif request.method == 'POST':
         table = request.json['table']
         data = request.json['data']

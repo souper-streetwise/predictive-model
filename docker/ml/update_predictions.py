@@ -1,18 +1,17 @@
-##########################################################################
-###
-###  Script which is the main script of the ML container, will be run 
-###  once every day.
-###
-###  The script pulls the database, trains a model, performs predictions
-###  for the next 7 days, stores the predictions in the database along with
-###  the weather data used to make those predictions, and finally saves the
-###  model, which is linked to a model directory outside the container.
-###
-##########################################################################
+#=========================================================================
+#
+#  Script which is the main script of the ML container, will be run 
+#  once every day.
+#
+#  The script pulls the database, trains a model, performs predictions
+#  for the next 7 days, stores the predictions in the database along with
+#  the weather data used to make those predictions, and finally saves the
+#  model, which is linked to a model directory outside the container.
+#
+#=========================================================================
 
-from .training import train_model
-from .data import get_bristol_weather
-from .utils import precip_type
+from .model import train_model
+from .weather import get_bristol_weather, precip_type
 from pathlib import Path
 import datetime as dt
 import pandas as pd

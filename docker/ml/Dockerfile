@@ -9,4 +9,4 @@ RUN python -m pip install --no-cache-dir -r requirements.txt
 # Copy all relevant files into the docker folder
 COPY . /ml
 
-ENTRYPOINT ["python", "-m", "ml.train_predict"]
+ENTRYPOINT ["python", "-m", "ml.update_predictions"]
