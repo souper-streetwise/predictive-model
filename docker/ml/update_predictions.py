@@ -15,6 +15,7 @@ from .weather import get_bristol_weather, precip_type
 from pathlib import Path
 import datetime as dt
 import pandas as pd
+import numpy as np
 from collections import defaultdict
 import requests
 
