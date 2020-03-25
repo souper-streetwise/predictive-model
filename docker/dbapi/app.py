@@ -32,9 +32,9 @@ with sqlite3.connect('/soup.db') as db:
     '''CREATE TABLE IF NOT EXISTS predictions(
         date TEXT PRIMARY KEY,
         date_predicted TEXT,
-        prediction REAL,
-        lower REAL,
-        upper REAL)''')
+        prediction INTEGER,
+        lower INTEGER,
+        upper INTEGER)''')
     cursor.close()
 
 @app.route('/', methods = ['GET', 'POST'])
@@ -66,6 +66,3 @@ def data():
             db.commit()
             cursor.close()
         return '0'
-
-if __name__ == '__main__':
-    app.run(debug = True, host = '0.0.0.0')

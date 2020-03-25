@@ -1,8 +1,11 @@
 import sqlite3
 import pandas as pd
-from ml.utils import precip_type
+from pathlib import Path
+from utils import precip_type
 
-with sqlite3.connect('soup.db') as db:
+DATADIR = Path.cwd().parent / '.data'
+
+with sqlite3.connect(DATADIR / 'soup.db') as db:
     cursor = db.cursor()
     cursor.execute(\
     '''CREATE TABLE IF NOT EXISTS weather(
@@ -29,11 +32,11 @@ with sqlite3.connect('soup.db') as db:
     '''CREATE TABLE IF NOT EXISTS predictions(
         date TEXT PRIMARY KEY,
         date_predicted TEXT,
-        prediction REAL,
-        lower REAL,
-        upper REAL)''')
+        prediction INTEGER,
+        lower INTEGER,
+        upper INTEGER)''')
 
-    weather_df = pd.read_csv('weather_data.tsv', sep = '\t')
+    weather_df = pd.read_csv(DATADIR / 'weather_data.tsv', sep = '\t')
     weather_df['precip_type'] = weather_df.precip_type.map(precip_type)
     for row in weather_df.iterrows():
         row = list(row[1])
@@ -42,7 +45,7 @@ with sqlite3.connect('soup.db') as db:
                 VALUES(?{", ?" * (len(row) - 1)})''', 
             row)
 
-    counts_df = pd.read_csv('inital_data_march2020_update_clean.csv',
+    counts_df = pd.read_csv(DATADIR / 'inital_data_march2020_update_clean.csv',
         usecols = ['date', 'fst', 'snd'])
     for row in counts_df.iterrows():
         row = list(row[1])
