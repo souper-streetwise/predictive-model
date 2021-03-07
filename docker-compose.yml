@@ -8,7 +8,7 @@ services:
     build: ./dbapi
     volumes: 
       - ./dbapi:/dbapi
-      - ./soup.db:/soup.db
+      - ./data:/data
     networks:
       - soupnetwork
     expose:
