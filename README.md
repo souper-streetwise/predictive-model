@@ -24,7 +24,8 @@ You will then be able to go to [localhost:5000](http://localhost:5000/) to see
 the webapp. This will also update the database with new predictions at 3am UTC
 every day, set up as a cronjob.
 
-Run the command `make stop-services` to stop all the services.
+Run the command `make stop-services` to stop all the services, which also will
+remove the cronjob.
 
 
 ## REST API
