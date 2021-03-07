@@ -24,10 +24,12 @@ You will then be able to go to [localhost:5000](http://localhost:5000/) to see
 the webapp. This will also update the database with new predictions at 3am UTC
 every day, set up as a cronjob.
 
+Run the command `make stop-services` to stop all the services.
+
 
 ## REST API
 
-You can also send GET requests to the database API at 
+You can send GET requests to the database API at 
 [localhost:8080](http://localhost:8080/) with `table` set to one of the
 following:
 
@@ -37,3 +39,7 @@ following:
   Run Trust
   - `predictions`, for the associated predictions from the model, including 
   prediction intervals
+
+For instance, 
+[localhost:8080/?table=predictions](http://localhost:8080/?table=predictions)
+would show the table with the predictions.
