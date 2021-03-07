@@ -5,7 +5,7 @@ import json
 app = Flask(__name__)
 
 # Create tables
-with sqlite3.connect('/soup.db') as db:
+with sqlite3.connect('/data/soup.db') as db:
     cursor = db.cursor()
     cursor.execute(\
     '''CREATE TABLE IF NOT EXISTS weather(
@@ -43,7 +43,7 @@ def data():
     # If someone performs a GET request then return all data from
     # the requested data, in a JSON format
     if request.method == 'GET':
-        with sqlite3.connect('/soup.db') as db:
+        with sqlite3.connect('/data/soup.db') as db:
             cursor = db.cursor()
             table = request.args.get('table', 'counts')
             cursor.execute(f'SELECT * FROM {table}')
@@ -56,7 +56,7 @@ def data():
     elif request.method == 'POST':
         table = request.json['table']
         data = request.json['data']
-        with sqlite3.connect('/soup.db') as db:
+        with sqlite3.connect('/data/soup.db') as db:
             cursor = db.cursor()
             for row in data:
                 cursor.execute(\
