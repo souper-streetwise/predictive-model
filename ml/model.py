@@ -5,6 +5,7 @@ import pickle
 from pathlib import Path
 import numpy as np
 import pandas as pd
+from joblib import load, dump
 
 def load_model_data(model_name: str = 'soup_model', 
     data_dir: Union[str, Path] = '.data') -> Dict[str, object]:
@@ -27,9 +28,8 @@ def load_model_data(model_name: str = 'soup_model',
                 score, sorted in descending order
     '''
     model_path = Path(data_dir) / model_name
-    if model_path.is_file():
-        with open(model_path, 'rb') as f:
-            return pickle.load(f)
+    if model_path.exists():
+        return load(model_path)
     else:
         raise FileNotFoundError(f'The model {model_path} was not found.')
 
@@ -157,7 +157,8 @@ def train_model(
     model_data = {'model': model, 'score': score, 'feat_imps': feat_imps}
 
     if save_model:
-        with open(Path(data_dir) / model_name, 'wb') as f:
-            pickle.dump(model_data, f)
+        if not Path(data_dir).is_dir():
+            Path(data_dir).mkdir()
+        dump(model_data, Path(data_dir) / model_name)
 
     return model_data

@@ -40,5 +40,11 @@ services:
     ports:
       - "80:80"
 
+  ml:
+    container_name: ml
+    build: ./ml
+    networks:
+      - soupnetwork
+
 networks:
   soupnetwork:

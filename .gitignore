@@ -1,9 +1,13 @@
-darksky_key.txt
-.ipynb_checkpoints/*
-**/.ipynb_checkpoints/*
-__pycache__/*
-**/__pycache__/*
+# Darksky API key
+**/darksky_key.txt
+
+# VIm swap files
 **.swp
-**/soup_model*
+
+# Cache
 **.Rhistory
-.env/*
+**/.ipynb_checkpoints/*
+**/__pycache__/*
+
+# Virtual environment
+.venv
