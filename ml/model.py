@@ -1,6 +1,5 @@
 from typing import Union, Dict
 from sklearn.model_selection import cross_val_score
-from skgarden import ExtraTreesQuantileRegressor
 import pickle
 from pathlib import Path
 import numpy as np
@@ -8,7 +7,7 @@ import pandas as pd
 from joblib import load, dump
 
 def load_model_data(model_name: str = 'soup_model', 
-    data_dir: Union[str, Path] = '.data') -> Dict[str, object]:
+    data_dir: Union[str, Path] = 'data') -> Dict[str, object]:
     ''' Load a saved model with associated scores and feature importances. 
     
     INPUT
@@ -47,7 +46,7 @@ def train_model(
     save_model: bool = True,
     cv: int = 10,
     workers: int = -1,
-    data_dir: Union[str, Path] = '.data',
+    data_dir: Union[str, Path] = 'data',
     model_name: str = 'soup_model',
     **kwargs) -> Dict[str, object]:
     ''' Train an ExtraTreesQuantileRegressor model from scratch.
@@ -99,7 +98,7 @@ def train_model(
         workers: int = -1
             The number of CPU cores to use when training the model. If
             -1 is given then all CPU cores will be used
-        data_dir: Union[str, pathlib.Path] = '.data'
+        data_dir: Union[str, pathlib.Path] = 'data'
             The path where the model should be stored
         model_name: str = 'soup_model'
             The filename of the model
@@ -114,6 +113,7 @@ def train_model(
                 A list of the features with their feature importance
                 score, sorted in descending order
     '''
+    from skgarden import ExtraTreesQuantileRegressor
     # Round hyperparameters
     if isinstance(max_depth, int) and max_depth > 5000: 
         max_depth = None
