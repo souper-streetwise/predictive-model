@@ -43,6 +43,8 @@ services:
   ml:
     container_name: ml
     build: ./ml
+    volumes:
+      - ./models:/models
     networks:
       - soupnetwork
 
