@@ -1,6 +1,6 @@
 start-services:
 	# Build the images and start the containers
-	docker-compose up -d
+	docker-compose up -d --build
 
 	# Set up a cronjob, which updates the database with new predictions every day
 	# at 3am UTC. This will not overwrite other cronjobs, and if this cronjob
